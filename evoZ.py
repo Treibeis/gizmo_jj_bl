@@ -10,21 +10,30 @@ if __name__ == "__main__":
 	#ldir = ['halo1_jj_wdm/','halo1_jj_cdm/']
 	Zsh = 1e-4
 
+	sn0 = 24
+	sn1 = 23
+
 	out0 = []
 	out1 = []
 	if tag==0:
-		for sn in range(20,21):
-			out0.append(metal(sn=sn, indm=1, rep=ldir[0]))
-			out1.append(metal(sn=sn, indm=0, rep=ldir[1]))
-		data = np.hstack([out0,out1])
-		data = data.T
-		totxt(rep0+'metalicity.txt',data,0,0,0)
+		for sn in range(0,25):
+			if sn<=sn0:
+				out0.append(metal(sn=sn, indm=1, rep=ldir[0]))
+			if sn<=sn1:
+				out1.append(metal(sn=sn, indm=0, rep=ldir[1]))
+		#data = np.hstack([out0,out1])
+		#data = data.T
+		out0 = np.array(out0).T
+		out1 = np.array(out1).T
+		totxt(rep0+'metalicity'+'_'+lmodel[1]+'.txt',out0,0,0,0)
+		totxt(rep0+'metalicity'+'_'+lmodel[0]+'.txt',out1,0,0,0)
 	else:
-		data = retxt(rep0+'metalicity.txt',6,0,0)
+		out0 = np.array(retxt(rep0+'metalicity'+'_'+lmodel[1]+'.txt', 3, 0, 0))
+		out1 = np.array(retxt(rep0+'metalicity'+'_'+lmodel[0]+'.txt', 3, 0, 0))
 
 	plt.figure()
-	plt.plot(data[2], data[0], label=lmodel[1],marker='^')
-	plt.plot(data[2], data[3], label=lmodel[0],ls='--',marker='o')
+	plt.plot(out0[2][out0[0]>0], out0[0][out0[0]>0], label=lmodel[1],marker='^')
+	plt.plot(out1[2][out1[0]>0], out1[0][out1[0]>0], label=lmodel[0],ls='--',marker='o')
 	plt.xlabel(r'$z$')
 	plt.ylabel(r'$\bar{Z}\ [Z_{\odot}]$')
 	plt.legend()
@@ -37,8 +46,8 @@ if __name__ == "__main__":
 		plt.savefig(rep0+'Zbar_z.pdf')	
 
 	plt.figure()
-	plt.plot(data[2], data[1], label=lmodel[1],marker='^')
-	plt.plot(data[2], data[4], label=lmodel[0],ls='--',marker='o')
+	plt.plot(out0[2][out0[1]>0], out0[1][out0[1]>0], label=lmodel[1],marker='^')
+	plt.plot(out1[2][out1[1]>0], out1[1][out1[1]>0], label=lmodel[0],ls='--',marker='o')
 	plt.xlabel(r'$z$')
 	plt.ylabel(r'$f_{\mathrm{PopII}}$')
 	plt.legend()
