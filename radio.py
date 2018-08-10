@@ -67,6 +67,12 @@ def Tnu(nu, Jnu):
 def Tnu_sky(nu):
 	return 2.725 + 24.1*(nu/310)**-2.599
 
+def Tnu_sky_(nu):
+	return 2.72527+21.96*(nu/310)**-2.643+1.243*(nu/310)**-2
+
+def Tnu_sky_syn(nu):
+	return 21.96*(nu/310)**-2.643
+
 Ae = Tnu_sky(100)*5*10**3
 
 def Tnu_SKA(nu, dnu = 1.0, t = 1000, sigma = 10):
