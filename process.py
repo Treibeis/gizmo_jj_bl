@@ -363,8 +363,8 @@ def phase(sn = 50, rep = './', indm = 0, edge = [0.01, 100.0], base = 'snapshot'
 	racc = np.array((Mres*UM/1e10/(4*np.pi*1e2*1.22*PROTON/3))**(1/3)/UL)
 	print('Accretion radius: {} kpc'.format(racc))
 
-	rT = np.percentile(np.log10(lT), edge)
-	rn = np.percentile(np.log10(nd), edge)
+	rT = [0.99,6.5]#np.percentile(np.log10(lT), edge)
+	rn = [-5.0,4.0]#np.percentile(np.log10(nd), edge)
 	rx = np.percentile(np.log10(lxh), edge)
 	rxd = np.percentile(np.log10(lxhd), edge)
 	rxd[0] = max(rxd[0], -11)
@@ -388,6 +388,7 @@ def phase(sn = 50, rep = './', indm = 0, edge = [0.01, 100.0], base = 'snapshot'
 	plt.hist2d(np.log10(nd),np.log10(lT),bins=100,norm=LogNorm(),range=[rn,rT])
 	cb = plt.colorbar()
 	cb.set_label(r'$\log(N)$')
+	cb.set_clim(1.0,1e6)
 	plt.xlabel(r'$\log(n\ [\mathrm{cm^{-3}}])$')
 	plt.ylabel(r'$\log(T\ [\mathrm{K}])$')
 	#plt.title(r'$T-n$ phase diagram for '+lmodel[indm]+' at $z=$'+str(int(ds['Redshift']*100)/100),size=12)
@@ -450,7 +451,7 @@ def phase(sn = 50, rep = './', indm = 0, edge = [0.01, 100.0], base = 'snapshot'
 	plt.title(r'$M_{\mathrm{BE}}-n$ phase diagram for '+lmodel[indm]+' at $z=$'+str(int(ds['Redshift']*100)/100),size=12)
 	plt.tight_layout()
 	plt.savefig(rep+'MBEn_'+lmodel[indm]+'_'+str(sn)+'.pdf')
-	plt.show()
+	#plt.show()
 	
 	return ds
 

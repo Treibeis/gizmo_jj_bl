@@ -283,7 +283,7 @@ if __name__ == "__main__":
 	#ax2.set_xticklabels(['Post-reionization','203']+[str(int(x)) for x in 1420/(loc0+1)],size=11)
 	#ax2.set_xlabel(r'$\nu_{\mathrm{obs}}\ [\mathrm{MHz}]$')#=1420/(1+z)\ \mathrm{MHz}
 	#print([min(lJ2),max(lJ1)])
-	yup = np.min([1e4, np.max([60, np.max(Tnu(1420/(1+lz),np.array(lJz1))),np.max(Tnu(1420/(1+lz),np.array(lJz0))), np.max(Tnu(310,np.array(lJ0)))])*1.05])
+	yup = np.min([6e3, np.max([60, np.max(Tnu(1420/(1+lz),np.array(lJz1))),np.max(Tnu(1420/(1+lz),np.array(lJz0))), np.max(Tnu(310,np.array(lJ0)))])*1.05])
 	ax1.plot([6,6],[1e-9,yup],lw=0.5,color='k')
 	#ax1.plot([9.215,9.215],[1e-9,60],'--',lw=0.5,color='k')
 	#ax1.plot([12.593,12.593],[1e-9,60],'--',lw=0.5,color='k')
@@ -293,7 +293,7 @@ if __name__ == "__main__":
 	#ax2.set_xlim(ax1.get_xlim())
 	ax1.set_ylim(1e-9,yup)
 	ax1.set_xlabel(r'$z_{\mathrm{end}}$')
-	ax1.set_ylabel(r'$\langle\delta T\rangle(>z) [\mathrm{mK}]$')
+	ax1.set_ylabel(r'$\langle\delta T\rangle(>z_{\mathrm{end}}) [\mathrm{mK}]$')
 	ax1.legend()
 	if mode==0:
 		ax1.set_yscale('log')
