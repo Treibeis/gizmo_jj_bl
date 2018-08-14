@@ -18,7 +18,7 @@ if __name__ == "__main__":
 	A_syn0 = 10**Lp0(p_index)#1.1202483164633895e+59
 	A_syn1 = 10**Lp1(p_index)#1.8152757384235942e+58
 	facB = 1.0
-	facn = 2.1522e-5
+	facn = 3.4619e-5
 	#facn = 1.0
 	L_nu_syn0 = lambda x: jnu_syn_(10**x, A_syn0, p_index)*facB**((p_index+1)/4)*facn
 	L_nu_syn1 = lambda x: jnu_syn_(10**x, A_syn1, p_index)*facB**((p_index+1)/4)*facn
