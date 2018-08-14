@@ -209,7 +209,7 @@ if __name__ == "__main__":
 	ax1.plot(lnu[lnu>0], Tnu(lnu[lnu>0],10**J21_z(1420/lnu[lnu>0]-1)), ls=':',color='r', label=r'21 cm emission',lw=1)#, $\nu_{\mathrm{obs}}=1420/(1+z)\ \mathrm{MHz}$',lw=1)
 	lTnu_IGM = [Tnu(x,Jnu_bg(x)) for x in lnu]
 	ax1.plot(lnu, lTnu_IGM, ls='-.',lw=2,color='g',label=r'ionized diffuse IGM')
-	ax1.plot(lnu,Tnu_SKA(lnu),'k--',label=r'SKA',lw=1)#, 10$\sigma$, $10^{3}$ h',lw=2)
+	ax1.plot(lnu,Tnu_SKA(lnu),'k--',label=r'SKA',lw=2)#, 10$\sigma$, $10^{3}$ h',lw=2)
 	ax1.fill_between(lnu,1e3*Tnu_sky_ff(lnu,-1),1e3*Tnu_sky_ff(lnu,1),facecolor='gray',label=r'$T_{\mathrm{ff}}^{\mathrm{G}}$',alpha=0.5)
 	ax2.set_xscale('log')
 	loc = [1420/3.0,1420/7.0,1420/10.215,1420/13.593,1420/21]

@@ -68,10 +68,10 @@ def Tnu_sky(nu):
 	return 2.725 + 24.1*(nu/310)**-2.599
 
 def Tnu_sky_(nu):
-	return 2.72527+21.96*(nu/310)**-2.643+1.243*(nu/310)**-2
+	return 2.7252764+22.065672*(nu/310)**-2.6418872+1.217*(nu/310)**-2
 
 def Tnu_sky_ff(nu, ru):
-	return (1.243+0.611*ru)*(nu/310)**-2
+	return (1.217+0.61374005*ru)*(nu/310)**-2
 
 def Tnu_sky_syn(nu):
 	return 21.96*(nu/310)**-2.643
