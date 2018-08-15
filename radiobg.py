@@ -201,7 +201,7 @@ if __name__ == "__main__":
 	lJnu1 = [Jnu_cosmic(zend,L=L_nu1,nu=x,n_a=n_a_WDM,mode=tmode) for x in lnu]
 	fig = plt.figure()
 	ax1 = fig.add_subplot(111)
-	ax2 = ax1.twiny()
+	#ax2 = ax1.twiny()
 	ax1.plot(lnu, Tnu(lnu,np.array(lJnu1)), label=r'Structure formation, '+lmodel[1],lw=1)
 	ax1.plot(lnu, Tnu(lnu,np.array(lJnu0)), label=r'Structure formation, '+lmodel[0],ls='--',lw=1)
 	ax1.plot(lnu, Tnu(lnu,JHII_z(6)),'-.',label=r'Mini-halo $\mathrm{H_{II}}$ regions',lw=1)# ($M_{*}\sim 100\ M_{\odot})$',lw=1)
@@ -211,18 +211,18 @@ if __name__ == "__main__":
 	ax1.plot(lnu, lTnu_IGM, ls='-.',lw=2,color='g',label=r'ionized diffuse IGM')
 	ax1.plot(lnu,Tnu_SKA(lnu),'k--',label=r'SKA',lw=2)#, 10$\sigma$, $10^{3}$ h',lw=2)
 	ax1.fill_between(lnu,1e3*Tnu_sky_ff(lnu,-1),1e3*Tnu_sky_ff(lnu,1),facecolor='gray',label=r'$T_{\mathrm{ff}}^{\mathrm{G}}$',alpha=0.5)
-	ax2.set_xscale('log')
-	loc = [1420/3.0,1420/7.0,1420/10.215,1420/13.593,1420/21]
-	ax2.set_xticks(loc)
-	ax2.set_xticklabels(['Post-reionization','6.0','9.2','13.6','20'],size=11)
-	ax2.set_xlabel(r'$z$')#=1420/(1+z)\ \mathrm{MHz}
+	#ax2.set_xscale('log')
+	#loc = [1420/3.0,1420/7.0,1420/10.215,1420/13.593,1420/21]
+	#ax2.set_xticks(loc)
+	#ax2.set_xticklabels(['Post-reionization','6.0','9.2','13.6','20'],size=11)
+	#ax2.set_xlabel(r'$z$')#=1420/(1+z)\ \mathrm{MHz}
 	yup = np.max([160.0,np.max(Tnu(lnu,np.array(lJnu1))),np.max(Tnu(lnu,np.array(lJnu0)))])*1.05
 	ax1.plot([1420/7,1420/7],[1e-3,yup],lw=0.5,color='k')
 	#ax1.plot([1420/10.215,1420/10.215],[1e-3,210.0],'--',lw=0.5,color='k')
 	#ax1.plot([1420/13.593,1420/13.593],[1e-3,210.0],'--',lw=0.5,color='k')
 	ax1.fill_between([1420/7,1400],[1e-3,1e-3],[yup,yup],facecolor='gray',alpha=0.2)
 	ax1.set_xlim(50,1400)
-	ax2.set_xlim(ax1.get_xlim())
+	#ax2.set_xlim(ax1.get_xlim())
 	ax1.set_ylim(1e-4,yup)
 	ax1.set_xlabel(r'$\nu_{\mathrm{obs}}\ [\mathrm{MHz}]$')
 	ax1.set_ylabel(r'$\langle\delta T\rangle\ [\mathrm{mK}]$')
