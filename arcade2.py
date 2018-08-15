@@ -85,7 +85,7 @@ def fit(mode, x=x[select], y=y[select], C=C[select][:,select], beta = -2.0, ref 
 	lT1 = np.array(lT1)
 	lT2 = np.array(lT2)
 	lindex = np.array(lindex)
-	return [np.mean(lT0[o]), np.mean(lT1[o]), np.mean(lT2[o]), np.mean(lindex[o]), np.std(lT0[o]), np.std(lT1[o]), np.std(lT2[o]), np.std(lindex[o])]
+	return [np.mean(lT0[o]), np.mean(lT1[o]), np.mean(lT2[o]), np.mean(lindex[o]), np.ptp(lT0[o])/2, np.ptp(lT1[o])/2, np.ptp(lT2[o])/2, np.ptp(lindex[o])/2]# np.std(lT0[o]), np.std(lT1[o]), np.std(lT2[o]), np.std(lindex[o])]
 
 if __name__ == '__main__':
 	#print(x.shape,y.shape,C.shape)

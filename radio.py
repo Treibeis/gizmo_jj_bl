@@ -71,7 +71,7 @@ def Tnu_sky_(nu):
 	return 2.7252764+22.065672*(nu/310)**-2.6418872+1.217*(nu/310)**-2
 
 def Tnu_sky_ff(nu, ru):
-	return (1.217+0.61374005*ru)*(nu/310)**-2
+	return (1.217+1.115*ru)*(nu/310)**-2
 
 def Tnu_sky_syn(nu):
 	return 21.96*(nu/310)**-2.643

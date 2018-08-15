@@ -217,10 +217,10 @@ if __name__ == "__main__":
 	#ax2.set_xticklabels(['Post-reionization','6.0','9.2','13.6','20'],size=11)
 	#ax2.set_xlabel(r'$z$')#=1420/(1+z)\ \mathrm{MHz}
 	yup = np.max([160.0,np.max(Tnu(lnu,np.array(lJnu1))),np.max(Tnu(lnu,np.array(lJnu0)))])*1.05
-	ax1.plot([1420/7,1420/7],[1e-3,yup],lw=0.5,color='k')
+	ax1.plot([1420/7,1420/7],[1e-4,yup],lw=0.5,color='k')
 	#ax1.plot([1420/10.215,1420/10.215],[1e-3,210.0],'--',lw=0.5,color='k')
 	#ax1.plot([1420/13.593,1420/13.593],[1e-3,210.0],'--',lw=0.5,color='k')
-	ax1.fill_between([1420/7,1400],[1e-3,1e-3],[yup,yup],facecolor='gray',alpha=0.2)
+	ax1.fill_between([1420/7,1400],[1e-4,1e-4],[yup,yup],facecolor='gray',alpha=0.2)
 	ax1.set_xlim(50,1400)
 	#ax2.set_xlim(ax1.get_xlim())
 	ax1.set_ylim(1e-4,yup)
