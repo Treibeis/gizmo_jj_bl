@@ -34,25 +34,30 @@ if __name__ == "__main__":
 	hmf1 = hmf.wdm.MassFunctionWDM()
 	hmf1.update(n=0.966, sigma_8=0.829,cosmo_params={'Om0':0.315,'H0':67.74},Mmin=8,Mmax=11,wdm_mass=3)
 
-	nzbin = 61
+	d_delta = lambda z: 1.686*(1-0.01*(1+z)/20)
+
+	nzbin = 101
 	#lt_base=np.linspace(TZ(30),TZ(0),31)/1e9/YR
-	lz_base=np.linspace(0,30,nzbin)#np.array([ZT(np.log10(x)) for x in lt_base])
+	lz_base=np.linspace(0,50,nzbin)#np.array([ZT(np.log10(x)) for x in lt_base])
 	ln_M_z0 = np.zeros(nzbin)
 	ln_M_z1 = np.zeros(nzbin)
 	ln_M_z00 = np.zeros(nzbin)
 	h = 0.6774
 	for i in range(len(lz_base)):
 		hmf0.update(z=lz_base[i])
+		#hmf0.update(delta_c = d_delta(lz_base[i]))#
 		lm = np.log10(hmf0.m/h)
 		ln = np.log10(hmf0.ngtm*h**3)
 		nm = interp1d(lm,ln)
 		ln_M_z0[i] = (10**nm(9)-10**nm(10))
 		hmf1.update(z=lz_base[i])
+		#hmf1.update(delta_c = d_delta(lz_base[i]))#
 		lm = np.log10(hmf1.m/h)
 		ln = np.log10(hmf1.ngtm*h**3)
 		nm = interp1d(lm,ln)
 		ln_M_z1[i] = (10**nm(9)-10**nm(10))
 		hmf00.update(z=lz_base[i])
+		#hmf00.update(delta_c = d_delta(lz_base[i]))#
 		lm = np.log10(hmf00.m/h)
 		ln = np.log10(hmf00.ngtm*h**3)
 		nm = interp1d(lm,ln)
@@ -92,20 +97,20 @@ if __name__ == "__main__":
 	plt.savefig(rep0+'n_M_t.pdf')
 	#plt.show()
 	#"""
+	nz0 = interp1d(lz_base,np.log10(ln_M_z0))
+	nz00 = interp1d(lz_base,np.log10(ln_M_z00))
+	nz1 = interp1d(lz_base,np.log10(ln_M_z1))
 	def n_a_CDM(a,h=0.6774):
 		z = 1/a-1
-		nz = interp1d(lz_base,np.log10(ln_M_z0))
-		return 10**nz(z)
+		return 10**nz0(z)
 	
 	def n_a_CDM0(a,h=0.6774):
 		z = 1/a-1
-		nz = interp1d(lz_base,np.log10(ln_M_z00))
-		return 10**nz(z)
+		return 10**nz00(z)
 
 	def n_a_WDM(a,h=0.6774):
 		z = 1/a-1
-		nz = interp1d(lz_base,np.log10(ln_M_z1))
-		return 10**nz(z)
+		return 10**nz1(z)
 
 	JHII_z = lambda z: 0.3*(z<=6) + 0.3*(z>6)*n_a_CDM0(1/(1+z))/n_a_CDM0(1/7)
 
