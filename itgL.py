@@ -3,7 +3,6 @@ from radio import *
 if __name__ == "__main__":
 	tag = 1
 	sca = 0
-
 	ncore = 6
 	nline = 42
 	rep0 = 'halo1_jj/'
@@ -17,14 +16,14 @@ if __name__ == "__main__":
 	else:
 		low, up = 1900, 2000
 
-	sn0 = 24
-	sn1 = 23
+	sn0 = 25
+	sn1 = 24
 
 	if tag==0:
 		out0 = []
 		out1 = []
 		dlu0, dlu1 = [], []
-		for sn in range(0,25):
+		for sn in range(0,26):
 			if mode==0:
 				mesh = mesh_3d(low, up, bins, low, up, bins, low, up, bins)
 				if sn<=sn0:
@@ -153,7 +152,7 @@ if __name__ == "__main__":
 		plt.savefig(rep0+'FH2_z_'+str(bins)+'.pdf')
 	else:
 		plt.savefig(rep0+'logFH2_z_'+str(bins)+'.pdf')
-	print('H2 flux {} (CDW), {} (WDM) [W m^-2]'.format(max(lflux1),max(lflux0)))
+	print('H2 flux {} (CDM), {} (WDM) [W m^-2]'.format(lflux1[-1],lflux0[-1]))
 
 	plt.figure()
 	plt.plot(lu0[0][lu0[1]>0],lu0[1][lu0[1]>0],label='diffuse, '+lmodel[1],marker='^')
