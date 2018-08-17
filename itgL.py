@@ -2,8 +2,12 @@ from radio import *
 
 if __name__ == "__main__":
 	tag = 1
+<<<<<<< HEAD
 	sca = 1
 
+=======
+	sca = 0
+>>>>>>> 21a82f81619558a186b46b8b0def0225c1f22c3e
 	ncore = 6
 	nline = 42
 	rep0 = 'halo1_jj/'
@@ -163,8 +167,12 @@ if __name__ == "__main__":
 		plt.savefig(rep0+'FH2_z_'+str(bins)+'.pdf')
 	else:
 		plt.savefig(rep0+'logFH2_z_'+str(bins)+'.pdf')
+<<<<<<< HEAD
 	print('H2 flux: {} (CDM), {} (WDM) [W m^-2]'.format(max(lflux1),max(lflux0)))
 	print('H2 flux at z = {}: {} (CDM), {} (WDM) [W m^-2]'.format(lu0[0][18],lflux1[-8],lflux0[-8]))
+=======
+	print('H2 flux {} (CDM), {} (WDM) [W m^-2]'.format(lflux1[-1],lflux0[-1]))
+>>>>>>> 21a82f81619558a186b46b8b0def0225c1f22c3e
 
 	plt.figure()
 	plt.plot(lu0[0][lu0[1]>0],lu0[1][lu0[1]>0],label='diffuse, '+lmodel[1],marker='^')
