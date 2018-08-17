@@ -2,7 +2,7 @@ from radio import *
 
 if __name__ == "__main__":
 	tag = 1
-	sca = 0
+	sca = 1
 
 	ncore = 6
 	nline = 42
@@ -17,14 +17,14 @@ if __name__ == "__main__":
 	else:
 		low, up = 1900, 2000
 
-	sn0 = 24
-	sn1 = 23
+	sn0 = 25
+	sn1 = 24
 
 	if tag==0:
 		out0 = []
 		out1 = []
 		dlu0, dlu1 = [], []
-		for sn in range(0,25):
+		for sn in range(0,26):
 			if mode==0:
 				mesh = mesh_3d(low, up, bins, low, up, bins, low, up, bins)
 				if sn<=sn0:
@@ -129,11 +129,21 @@ if __name__ == "__main__":
 		plt.savefig(rep0+'LH2_line_CDM_z_'+str(bins)+'.pdf')
 	else:
 		plt.savefig(rep0+'logLH2_line_CDM_z_'+str(bins)+'.pdf')
-	
+
+	lt0 = np.array([TZ(x)/YR/1e6 for x in lu0[0]])
+	lt1 = np.array([TZ(x)/YR/1e6 for x in lu1[0]])
+	Ms_t0 = interp1d(lt0, lu0[3])
+	Ms_t1 = interp1d(lt1, lu1[3])
+	tcore = 0.1
+	lt0[1:] = lt0[1:]-tcore
+	lt1[1:] = lt1[1:]-tcore
+	luc0 = lu0[3]-Ms_t0(lt0)
+	luc1 = lu1[3]-Ms_t1(lt1)
+
 	lz0 = lu0[0][lu0[1]>0]
 	lz1 = lu1[0][lu1[1]>0]
-	llu0 = (lu0[1]+lu0[3]*0.05*5e33/10)[lu0[1]>0]
-	llu1 = (lu1[1]+lu1[3]*0.05*5e33/10)[lu1[1]>0]
+	llu0 = (lu0[1]+luc0*0.05*5e33/10)[lu0[1]>0]
+	llu1 = (lu1[1]+luc1*0.05*5e33/10)[lu1[1]>0]
 	lflux0 = [llu0[i]/(DZ(lz0[i])*(1+lz0[i]))**2/4/np.pi/1e3 for i in range(len(lz0))]
 	lflux1 = [llu1[i]/(DZ(lz1[i])*(1+lz1[i]))**2/4/np.pi/1e3 for i in range(len(lz1))]
 	plt.figure()
@@ -153,13 +163,14 @@ if __name__ == "__main__":
 		plt.savefig(rep0+'FH2_z_'+str(bins)+'.pdf')
 	else:
 		plt.savefig(rep0+'logFH2_z_'+str(bins)+'.pdf')
-	print('H2 flux {} (CDW), {} (WDM) [W m^-2]'.format(max(lflux1),max(lflux0)))
+	print('H2 flux: {} (CDM), {} (WDM) [W m^-2]'.format(max(lflux1),max(lflux0)))
+	print('H2 flux at z = {}: {} (CDM), {} (WDM) [W m^-2]'.format(lu0[0][18],lflux1[-8],lflux0[-8]))
 
 	plt.figure()
 	plt.plot(lu0[0][lu0[1]>0],lu0[1][lu0[1]>0],label='diffuse, '+lmodel[1],marker='^')
 	plt.plot(lu1[0][lu1[1]>0],lu1[1][lu1[1]>0],label='diffuse, '+lmodel[0],ls='--',marker='^')
-	plt.plot(lu0[0][lu0[3]>0],lu0[3][lu0[3]>0]*0.05*5e33/10,label='core, '+lmodel[1],marker='o')
-	plt.plot(lu1[0][lu1[3]>0],lu1[3][lu1[3]>0]*0.05*5e33/10,label='core ($\epsilon=0.05$, $M_{*}=10\ M_{\odot}$), '+lmodel[0],ls='--',marker='o')
+	plt.plot(lu0[0][lu0[3]>0],luc0[lu0[3]>0]*0.05*5e33/10,label='core, '+lmodel[1],marker='o')
+	plt.plot(lu1[0][lu1[3]>0],luc1[lu1[3]>0]*0.05*5e33/10,label='core, '+lmodel[0],ls='--',marker='o')# ($\epsilon=0.05$, $M_{*}=10\ M_{\odot}$)
 	plt.xlabel(r'$z$')
 	plt.xlim(min(lu0[0][lu0[1]>0])-0.1,max(lu1[0][lu1[1]>0])+0.1)
 	plt.ylabel(r'$L_{\mathrm{H_{2}}}\ [\mathrm{erg\ s^{-1}}]$')
