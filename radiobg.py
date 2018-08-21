@@ -1,4 +1,5 @@
 from radio import *
+d_delta = lambda z: 1.686*(1-0.01*(1+z)/20)
 
 if __name__ == "__main__":
 	rep0 = 'halo1_jj/'
@@ -18,7 +19,8 @@ if __name__ == "__main__":
 	A_syn0 = 10**Lp0(p_index)#1.1202483164633895e+59
 	A_syn1 = 10**Lp1(p_index)#1.8152757384235942e+58
 	facB = 1.0
-	facn = 3.4619e-5
+	facn = 3.4619e-5*0.6774**3*2 * 0.75/0.7523662791819455
+	print('beta_n = {}'.format(facn))
 	#facn = 1.0
 	L_nu_syn0 = lambda x: jnu_syn_(10**x, A_syn0, p_index)*facB**((p_index+1)/4)*facn
 	L_nu_syn1 = lambda x: jnu_syn_(10**x, A_syn1, p_index)*facB**((p_index+1)/4)*facn
@@ -27,6 +29,8 @@ if __name__ == "__main__":
 	dL = DZ(redshift)*(1+redshift)
 	print('Syn Flux: {} [erg s^-1 cm^-2 Hz^-1]'.format((1+redshift)*L_nu_syn0(np.log10(1.4e9*(1+redshift)))/dL**2/4/np.pi))
 
+	hmf000 = hmf.MassFunction()
+	hmf000.update(n=0.966, sigma_8=0.829,cosmo_params={'Om0':0.315,'H0':67.74},Mmin=3,Mmax=9)
 	hmf00 = hmf.MassFunction()
 	hmf00.update(n=0.966, sigma_8=0.829,cosmo_params={'Om0':0.315,'H0':67.74},Mmin=3,Mmax=9)
 	hmf0 = hmf.MassFunction()
@@ -34,44 +38,59 @@ if __name__ == "__main__":
 	hmf1 = hmf.wdm.MassFunctionWDM()
 	hmf1.update(n=0.966, sigma_8=0.829,cosmo_params={'Om0':0.315,'H0':67.74},Mmin=8,Mmax=11,wdm_mass=3)
 
-	d_delta = lambda z: 1.686*(1-0.01*(1+z)/20)
-
 	nzbin = 101
 	#lt_base=np.linspace(TZ(30),TZ(0),31)/1e9/YR
 	lz_base=np.linspace(0,50,nzbin)#np.array([ZT(np.log10(x)) for x in lt_base])
 	ln_M_z0 = np.zeros(nzbin)
 	ln_M_z1 = np.zeros(nzbin)
 	ln_M_z00 = np.zeros(nzbin)
+	ln_M_z000 = np.zeros(nzbin)
 	h = 0.6774
 	for i in range(len(lz_base)):
 		hmf0.update(z=lz_base[i])
-		#hmf0.update(delta_c = d_delta(lz_base[i]))#
+		hmf0.update(delta_c = d_delta(lz_base[i]))#
 		lm = np.log10(hmf0.m/h)
-		ln = np.log10(hmf0.ngtm*h**3)
+		ln = np.log10(hmf0.ngtm)#*h**3)
 		nm = interp1d(lm,ln)
 		ln_M_z0[i] = (10**nm(9)-10**nm(10))
 		hmf1.update(z=lz_base[i])
-		#hmf1.update(delta_c = d_delta(lz_base[i]))#
+		hmf1.update(delta_c = d_delta(lz_base[i]))#
 		lm = np.log10(hmf1.m/h)
-		ln = np.log10(hmf1.ngtm*h**3)
+		ln = np.log10(hmf1.ngtm)#*h**3)
 		nm = interp1d(lm,ln)
 		ln_M_z1[i] = (10**nm(9)-10**nm(10))
 		hmf00.update(z=lz_base[i])
-		#hmf00.update(delta_c = d_delta(lz_base[i]))#
+		hmf00.update(delta_c = d_delta(lz_base[i]))#
 		lm = np.log10(hmf00.m/h)
-		ln = np.log10(hmf00.ngtm*h**3)
+		ln = np.log10(hmf00.ngtm)#*h**3)
 		nm = interp1d(lm,ln)
 		ln_M_z00[i] = (10**nm(-2*np.log10((1+lz_base[i])/10)+6)-10**nm(np.log10(2.5*((1+lz_base[i])/10)**-1.5)+7))
-	hmf00.update(z=6)
-	lm = np.log10(hmf00.m/h)
-	ln = np.log10(hmf00.ngtm*h**3)
+		hmf000.update(z=lz_base[i])
+		lm = np.log10(hmf000.m/h)
+		ln = np.log10(hmf000.ngtm)#*h**3)
+		nm = interp1d(lm,ln)
+		ln_M_z000[i] = (10**nm(-2*np.log10((1+lz_base[i])/10)+6)-10**nm(np.log10(2.5*((1+lz_base[i])/10)**-1.5)+7))
+	hmf000.update(z=6)
+	lm = np.log10(hmf000.m/h)
+	ln = np.log10(hmf000.ngtm)#*h**3)
 	nm = interp1d(lm,ln)
 	ln_M_z_norm = (10**nm(-2*np.log10((1+6)/10)+6)-10**nm(np.log10(2.5*((1+6)/10)**-1.5)+7))
 
 	lJ21_z = [10.5*((1+lz_base[i])/7)**-1.5*ln_M_z00[i]/ln_M_z_norm for i in range(len(lz_base))]
 	J21_z = interp1d(lz_base,np.log10(lJ21_z))
 #J21_z = lambda z: J21_z0(z)*(z>6) + np.log10(10**J21_z0(6)*np.exp((1/7-1/(1+z))*20))*(z<=6)
-	#"""
+	"""
+	plt.figure()
+	plt.plot(lz_base,ln_M_z00,label='EdS')
+	plt.plot(lz_base,ln_M_z000,'--',label='Naoz et al. 2006')
+	plt.xlabel(r'$z$')
+	plt.ylabel(r'$N_{\mathrm{ps}}\ [h^{3}\mathrm{Mpc^{-3}}]$')
+	plt.yscale('log')
+	plt.legend()
+	plt.tight_layout()
+	plt.savefig(rep0+'nps_M_z.pdf')
+	plt.show()
+
 	lt_base = [TZ(x)/YR/1e9 for x in lz_base]
 	plt.figure()
 	plt.plot(lz_base,ln_M_z1,label=lmodel[1])
@@ -80,7 +99,7 @@ if __name__ == "__main__":
 	#plt.xlabel(r'$t\ [\mathrm{Gyr}]$')
 	plt.ylabel(r'$n(10^{9}-10^{10}\ M_{\odot})\ [h^{3}\mathrm{Mpc^{-3}}]$')
 	plt.xlim(0,20)
-	plt.ylim(0,3.5)
+	plt.ylim(0,1.5)
 	plt.legend()
 	plt.tight_layout()
 	plt.savefig(rep0+'n_M_z.pdf')
@@ -91,14 +110,15 @@ if __name__ == "__main__":
 	plt.xlabel(r'$t\ [\mathrm{Gyr}]$')
 	plt.ylabel(r'$n(10^{9}-10^{10}\ M_{\odot})\ [h^{3}\mathrm{Mpc^{-3}}]$')
 	#plt.xlim(0,20)
-	plt.ylim(0,3.5)
+	plt.ylim(0,1.5)
 	plt.legend()
 	plt.tight_layout()
 	plt.savefig(rep0+'n_M_t.pdf')
 	#plt.show()
-	#"""
+	"""
 	nz0 = interp1d(lz_base,np.log10(ln_M_z0))
 	nz00 = interp1d(lz_base,np.log10(ln_M_z00))
+	nz000 = interp1d(lz_base,np.log10(ln_M_z000))
 	nz1 = interp1d(lz_base,np.log10(ln_M_z1))
 	def n_a_CDM(a,h=0.6774):
 		z = 1/a-1
@@ -107,6 +127,10 @@ if __name__ == "__main__":
 	def n_a_CDM0(a,h=0.6774):
 		z = 1/a-1
 		return 10**nz00(z)
+
+	def n_a_CDM00(a,h=0.6774):
+		z = 1/a-1
+		return 10**nz000(z)
 
 	def n_a_WDM(a,h=0.6774):
 		z = 1/a-1
@@ -288,7 +312,7 @@ if __name__ == "__main__":
 	#ax2.set_xticklabels(['Post-reionization','203']+[str(int(x)) for x in 1420/(loc0+1)],size=11)
 	#ax2.set_xlabel(r'$\nu_{\mathrm{obs}}\ [\mathrm{MHz}]$')#=1420/(1+z)\ \mathrm{MHz}
 	#print([min(lJ2),max(lJ1)])
-	yup = np.min([6e3, np.max([60, np.max(Tnu(1420/(1+lz),np.array(lJz1))),np.max(Tnu(1420/(1+lz),np.array(lJz0))), np.max(Tnu(310,np.array(lJ0)))])*1.05])
+	yup = np.min([1e4, np.max([60, np.max(Tnu(1420/(1+lz),np.array(lJz1))),np.max(Tnu(1420/(1+lz),np.array(lJz0))), np.max(Tnu(310,np.array(lJ0)))])*1.05])
 	ax1.plot([6,6],[1e-9,yup],lw=0.5,color='k')
 	#ax1.plot([9.215,9.215],[1e-9,60],'--',lw=0.5,color='k')
 	#ax1.plot([12.593,12.593],[1e-9,60],'--',lw=0.5,color='k')
