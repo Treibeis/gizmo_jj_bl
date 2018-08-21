@@ -5,6 +5,7 @@ import hmf
 import sys
 #import matplotlib.pyplot as plt
 from txt import *
+import argparse
 
 def Nrads_z(lz = np.logspace(-2,np.log10(20),50), nbin = 100, z0 = 30, m1 = 9, m2 = 10, h = 0.6774):
 	hmf_ = hmf.MassFunction()
@@ -30,14 +31,35 @@ def Nrads_z(lz = np.logspace(-2,np.log10(20),50), nbin = 100, z0 = 30, m1 = 9, m
 	return [lz, out, [integrand(DZ(x)/1e3/UL) for x in lz]]
 
 if __name__ == "__main__":
-	m1 = int(sys.argv[1])
-	m2 = int(sys.argv[2])
-	z2 = float(sys.argv[3])
-	if len(sys.argv)>4:
-		z0 = float(sys.argv[4])
+	parser = argparse.ArgumentParser(description='Number of DM halos in the sky')
+	parser.add_argument('--m1', help='log10(m1 [Msun])', type=float, required=False)
+	parser.add_argument('--m2', help='log10(m2 [Msun])', type=float, required=False)
+	parser.add_argument('--z1', help='z1', type=float, required=False)
+	parser.add_argument('--z2', help='z2', type=float, required=False)
+	parser.add_argument('--z0', help='start redshift', type=float, required=False)
+	args = parser.parse_args()
+	args = vars(args)
+	if args['m1']==None:
+		m1 = 9.0
 	else:
-		z0 = 30
-	d = Nrads_z(lz = np.logspace(-2,np.log10(z2),50), m1=m1, m2=m2, z0 = z0)
+		m1 = args['m1']
+	if args['m2']==None:
+		m2 = 10.0
+	else:
+		m2 = args['m2']
+	if args['z1']==None:
+		z1 = 0.01
+	else:
+		z1 = args['z1']
+	if args['z2']==None:
+		z2 = 20.0
+	else:
+		z2 = args['z2']
+	if args['z0']==None:
+		z0 = 30.0
+	else:
+		z0 = args['z0']
+	d = Nrads_z(lz = np.logspace(np.log10(z1),np.log10(z2),50), m1=m1, m2=m2, z0 = z0)
 	plt.figure()
 	plt.plot(d[0],d[1],label=r'$\int_{d_{C}(z)}^{+\infty}4\pi n(r)r^{2}dr$')
 	plt.plot(d[0],d[2],label=r'$4\pi n(d_{C}(z))d_{C}^{2}(z)$',ls='--')
@@ -45,7 +67,7 @@ if __name__ == "__main__":
 	plt.xlabel(r'$z$')
 	plt.ylabel(r'Number (per unit comoving distance)')
 	plt.yscale('log')
-	plt.xlim(0,z2)
+	plt.xlim(z1,z2)
 	plt.legend()
 	plt.tight_layout()
 	plt.savefig('Nrads_z_'+str(m1)+'_'+str(m2)+'.pdf')
