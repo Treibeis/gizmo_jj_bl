@@ -2,15 +2,12 @@ from radio import *
 
 if __name__ == "__main__":
 	tag = 1
-<<<<<<< HEAD
-	sca = 1
-
-=======
 	sca = 0
->>>>>>> 21a82f81619558a186b46b8b0def0225c1f22c3e
+
 	ncore = 6
 	nline = 42
 	rep0 = 'halo1_jj/'
+	#rep0 = 'halo1/'
 	ldir = ['NL4_zoom_wdm/'+rep0, 'NL4_zoom_cdm/'+rep0]
 	#ldir = ['halo1_wdm/','halo1_cdm/']
 	Tsh = 1e4
@@ -22,7 +19,7 @@ if __name__ == "__main__":
 		low, up = 1900, 2000
 
 	sn0 = 25
-	sn1 = 24
+	sn1 = 25
 
 	if tag==0:
 		out0 = []
@@ -87,6 +84,42 @@ if __name__ == "__main__":
 	else:
 		plt.savefig(rep0+'logLH2_line_z_'+str(bins)+'.pdf')
 	#plt.show()
+
+	lz0 = lu0[0][lu0[1]>0]
+	lz1 = lu1[0][lu1[1]>0]
+	lfs10 = [lH20[2][lu0[1]>0][i]/(DZ(lz0[i])*(1+lz0[i]))**2/4/np.pi/1e3 for i in range(len(lz0))]
+	lfs11 = [lH21[2][lu1[1]>0][i]/(DZ(lz1[i])*(1+lz1[i]))**2/4/np.pi/1e3 for i in range(len(lz1))]
+	lfs30 = [lH20[4][lu0[1]>0][i]/(DZ(lz0[i])*(1+lz0[i]))**2/4/np.pi/1e3 for i in range(len(lz0))]
+	lfs31 = [lH21[4][lu1[1]>0][i]/(DZ(lz1[i])*(1+lz1[i]))**2/4/np.pi/1e3 for i in range(len(lz1))]
+	lfs50 = [lH20[6][lu0[1]>0][i]/(DZ(lz0[i])*(1+lz0[i]))**2/4/np.pi/1e3 for i in range(len(lz0))]
+	lfs51 = [lH21[6][lu1[1]>0][i]/(DZ(lz1[i])*(1+lz1[i]))**2/4/np.pi/1e3 for i in range(len(lz1))]
+	#lfs70 = [lH20[17][lu0[1]>0][i]/(DZ(lz0[i])*(1+lz0[i]))**2/4/np.pi/1e3 for i in range(len(lz0))]
+	#lfs71 = [lH21[17][lu1[1]>0][i]/(DZ(lz1[i])*(1+lz1[i]))**2/4/np.pi/1e3 for i in range(len(lz1))]
+	plt.figure()
+	plt.plot(lz0,lfs10,label='0-0 S(1), '+lmodel[1],marker='o')
+	plt.plot(lz0,lfs30,label='0-0 S(3), '+lmodel[1],marker='^')
+	plt.plot(lz0,lfs50,label='0-0 S(5), '+lmodel[1],marker='*')
+	plt.plot(lz1,lfs11,label='0-0 S(1), '+lmodel[0],ls='--',marker='o')
+	plt.plot(lz1,lfs31,label='0-0 S(3), '+lmodel[0],ls='--',marker='^')
+	plt.plot(lz1,lfs51,label='0-0 S(5), '+lmodel[0],ls='--',marker='*')
+	#plt.plot(lz0,lfs70,label='0-0 S(13), '+lmodel[1],marker='+')
+	#plt.plot(lz1,lfs71,label='0-0 S(13), '+lmodel[0],ls='--',marker='+')
+	plt.xlabel(r'$z$')
+	plt.xlim(min(lu0[0][lu0[1]>0])-0.1,max(lu1[0][lu1[1]>0])+0.1)
+	plt.ylabel(r'$F_{\mathrm{H_{2}}}\ [\mathrm{W\ m^{-2}}]$')
+	plt.title(r'$M_{\mathrm{vir}}=6.9\ (7.67)\times 10^{9}\ M_{\odot}$ in WDM (CDM) csomology,'+'\n with stellar feedbacks',size=12)
+	if sca!=0:
+		plt.yscale('log')
+		#plt.xscale('log')
+	plt.legend()
+	plt.tight_layout()
+	if sca==0:
+		plt.savefig(rep0+'FH2_line_z_'+str(bins)+'.pdf')
+	else:
+		plt.savefig(rep0+'logFH2_line_z_'+str(bins)+'.pdf')
+
+	#lflux0 = [llu0[i]/(DZ(lz0[i])*(1+lz0[i]))**2/4/np.pi/1e3 for i in range(len(lz0))]
+	#lflux1 = [llu1[i]/(DZ(lz1[i])*(1+lz1[i]))**2/4/np.pi/1e3 for i in range(len(lz1))]
 
 	plt.figure()
 	plt.plot(lu0[0][lu0[1]>0],lH20[4][lu0[1]>0],label='0-0 S(3), '+lmodel[1],marker='^')
@@ -167,12 +200,8 @@ if __name__ == "__main__":
 		plt.savefig(rep0+'FH2_z_'+str(bins)+'.pdf')
 	else:
 		plt.savefig(rep0+'logFH2_z_'+str(bins)+'.pdf')
-<<<<<<< HEAD
 	print('H2 flux: {} (CDM), {} (WDM) [W m^-2]'.format(max(lflux1),max(lflux0)))
 	print('H2 flux at z = {}: {} (CDM), {} (WDM) [W m^-2]'.format(lu0[0][18],lflux1[-8],lflux0[-8]))
-=======
-	print('H2 flux {} (CDM), {} (WDM) [W m^-2]'.format(lflux1[-1],lflux0[-1]))
->>>>>>> 21a82f81619558a186b46b8b0def0225c1f22c3e
 
 	plt.figure()
 	plt.plot(lu0[0][lu0[1]>0],lu0[1][lu0[1]>0],label='diffuse, '+lmodel[1],marker='^')
