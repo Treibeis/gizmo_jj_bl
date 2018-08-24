@@ -48,7 +48,7 @@ def n_a(a):
 	return 10**nz(z)
 
 # Radio background
-def Jnu_cosmic(z1 = 6, nu = 100, z0 = 30, L = lambda nu: 4e24, n_a = n_a, Om = 0.315, h = 0.6774,mode=0,trec = 100e6):
+def Jnu_cosmic(z1 = 6, nu = 100, z0 = 40, L = lambda nu: 4e24, n_a = n_a, Om = 0.315, h = 0.6774,mode=0,trec = 100e6):
 	if mode==0:
 		def integrand(a):
 			return L(np.log10(max(min(nu*1e6/a,10*numax()),numin()*10**0.5)))*n_a(a)*SPEEDOFLIGHT*dt_da(a, Om, h)/(UL*1e3/h)**3/4/np.pi

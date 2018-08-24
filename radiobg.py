@@ -150,7 +150,7 @@ if __name__ == "__main__":
 
 	lnu = 10**np.linspace(np.log10(50),np.log10(1400),100)
 	lJnu_syn0 = [Jnu_cosmic(zend,L=L_nu_syn0,nu=x,n_a=n_a_CDM,mode=tmode) for x in lnu]
-	lJnu_syn1 = [Jnu_cosmic(zend,L=L_nu_syn1,nu=x,n_a=n_a_CDM,mode=tmode) for x in lnu]
+	lJnu_syn1 = [Jnu_cosmic(zend,L=L_nu_syn1,nu=x,n_a=n_a_WDM,mode=tmode) for x in lnu]
 	plt.figure()
 	plt.plot(lnu, Tnu(lnu,np.array(lJnu_syn1)),label='Structure formation, '+lmodel[1])
 	plt.plot(lnu, Tnu(lnu,np.array(lJnu_syn0)),'--',label='Structure formation, '+lmodel[0])
@@ -169,6 +169,26 @@ if __name__ == "__main__":
 	else:
 		plt.savefig(rep0+'Tnu_syn.pdf')
 	print('Tnu_syn at 310 MHz: {} mK (CDM)'.format(Tnu(310,Jnu_cosmic(zend,L=L_nu_syn0,nu=310,n_a=n_a_CDM,mode=tmode))))
+
+	lz_syn = np.linspace(3,30,100)#np.logspace(-2,np.log10(30),100)
+	lJnu_syn0 = [Jnu_cosmic(max(x,zend),L=L_nu_syn0,nu=1420/(1+x),n_a=n_a_CDM,mode=tmode) for x in lz_syn]
+	lJnu_syn1 = [Jnu_cosmic(max(x,zend),L=L_nu_syn1,nu=1420/(1+x),n_a=n_a_WDM,mode=tmode) for x in lz_syn]
+	plt.figure()
+	plt.plot(lz_syn, 2.725*(1+lz_syn)+Tnu(1420/(1+lz_syn),np.array(lJnu_syn1))/1e3,'--',label='Structure formation, '+lmodel[0])
+	plt.plot(lz_syn, 2.725*(1+lz_syn)+Tnu(1420/(1+lz_syn),np.array(lJnu_syn0))/1e3,label='Structure formation, '+lmodel[1])
+	plt.plot(lz_syn, 2.725*(1+lz_syn)+(Tnu_sky(1420/(1+lz_syn))-2.725)*0.075,'-.',label='7.5% of ARCADE 2 excess')
+	plt.plot(lz_syn, 2.725*(1+lz_syn),':',label='no excess')
+	plt.ylabel(r'$T\ [\mathrm{K}]$')
+	plt.xlabel(r'$z$')
+	plt.legend()
+	plt.xlim(3,30)
+	if mode==0:
+		plt.yscale('log')
+	plt.tight_layout()
+	if mode==0:
+		plt.savefig(rep0+'logTz_syn.pdf')
+	else:
+		plt.savefig(rep0+'Tz_syn.pdf')
 
 	lp = np.linspace(2.0,3.0,21)
 	lT_syn0 = np.array([Tnu(310,Jnu_cosmic(zend,L=lambda x: jnu_syn_(10**x, 10**Lp0(y), y),nu=310,n_a=n_a_CDM,mode=tmode)) for y in lp])
