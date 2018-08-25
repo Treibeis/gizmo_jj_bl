@@ -1,26 +1,29 @@
 from radio import *
 d_delta = lambda z: 1.686*(1-0.01*(1+z)/20)
 
+def meanL(a=5/3, b=2.5, g=0.0, m=7):
+	return m**(-a+g) * (1-b)*(10**(a-b-g+1)-1) /((a-b-g+1)*(10**(1-b)-1))
+
 if __name__ == "__main__":
 	rep0 = 'halo1_jj/'
 	lL_nu0 = retxt(rep0+'Lnu_cdm.txt',2,0,0)
-	L_nu0 = interp1d(np.log10(lL_nu0[0]),lL_nu0[1])
+	L_nu0 = interp1d(np.log10(lL_nu0[0]),np.array(lL_nu0[1])*meanL())
 
 	lL_nu1 = retxt(rep0+'Lnu_wdm.txt',2,0,0)
-	L_nu1 = interp1d(np.log10(lL_nu1[0]),lL_nu1[1])
+	L_nu1 = interp1d(np.log10(lL_nu1[0]),meanL()*np.array(lL_nu1[1]))
 
 	lLp0 = retxt(rep0+'Lp_syn_cdm.txt',3,0,0)
-	Lp0 = interp1d(lLp0[2],np.log10(lLp0[1]))
+	Lp0 = interp1d(lLp0[2],np.log10(meanL()*np.array(lLp0[1])))
 
 	lLp1 = retxt(rep0+'Lp_syn_wdm.txt',3,0,0)
-	Lp1 = interp1d(lLp1[2],np.log10(lLp1[1]))
+	Lp1 = interp1d(lLp1[2],np.log10(meanL()*np.array(lLp1[1])))
 
 	p_index = 2.198
 	A_syn0 = 10**Lp0(p_index)#1.1202483164633895e+59
 	A_syn1 = 10**Lp1(p_index)#1.8152757384235942e+58
 	facB = 1.0
-	facn = 3.4619e-5*0.6774**3*2 * 0.75/0.7523662791819455
-	print('beta_n = {}'.format(facn))
+	facn = 3.4619e-5*0.6774**3*2 * 0.75/0.7523662791819455 /(meanL()*2)
+	print('beta_n = {}, fac = {}'.format(facn, meanL()))
 	#facn = 1.0
 	L_nu_syn0 = lambda x: jnu_syn_(10**x, A_syn0, p_index)*facB**((p_index+1)/4)*facn
 	L_nu_syn1 = lambda x: jnu_syn_(10**x, A_syn1, p_index)*facB**((p_index+1)/4)*facn
@@ -38,13 +41,15 @@ if __name__ == "__main__":
 	hmf1 = hmf.wdm.MassFunctionWDM()
 	hmf1.update(n=0.966, sigma_8=0.829,cosmo_params={'Om0':0.315,'H0':67.74},Mmin=8,Mmax=11,wdm_mass=3)
 
-	nzbin = 101
+	nzbin = 81
 	#lt_base=np.linspace(TZ(30),TZ(0),31)/1e9/YR
-	lz_base=np.linspace(0,50,nzbin)#np.array([ZT(np.log10(x)) for x in lt_base])
+	lz_base=np.linspace(0,40,nzbin)#np.array([ZT(np.log10(x)) for x in lt_base])
 	ln_M_z0 = np.zeros(nzbin)
 	ln_M_z1 = np.zeros(nzbin)
 	ln_M_z00 = np.zeros(nzbin)
 	ln_M_z000 = np.zeros(nzbin)
+	ln_M_z0_ = np.zeros(nzbin)
+	ln_M_z1_ = np.zeros(nzbin)
 	h = 0.6774
 	for i in range(len(lz_base)):
 		hmf0.update(z=lz_base[i])
@@ -53,12 +58,14 @@ if __name__ == "__main__":
 		ln = np.log10(hmf0.ngtm)#*h**3)
 		nm = interp1d(lm,ln)
 		ln_M_z0[i] = (10**nm(9)-10**nm(10))
+		ln_M_z0_[i] = (10**nm(9+np.log10(7))-10**nm(10))
 		hmf1.update(z=lz_base[i])
 		hmf1.update(delta_c = d_delta(lz_base[i]))#
 		lm = np.log10(hmf1.m/h)
 		ln = np.log10(hmf1.ngtm)#*h**3)
 		nm = interp1d(lm,ln)
 		ln_M_z1[i] = (10**nm(9)-10**nm(10))
+		ln_M_z1_[i] = (10**nm(9+np.log10(7))-10**nm(10))
 		hmf00.update(z=lz_base[i])
 		hmf00.update(delta_c = d_delta(lz_base[i]))#
 		lm = np.log10(hmf00.m/h)
@@ -79,7 +86,21 @@ if __name__ == "__main__":
 	lJ21_z = [10.5*((1+lz_base[i])/7)**-1.5*ln_M_z00[i]/ln_M_z_norm for i in range(len(lz_base))]
 	J21_z = interp1d(lz_base,np.log10(lJ21_z))
 #J21_z = lambda z: J21_z0(z)*(z>6) + np.log10(10**J21_z0(6)*np.exp((1/7-1/(1+z))*20))*(z<=6)
+
 	"""
+	plt.figure()
+	plt.plot(lz_base,np.array(ln_M_z1)/np.array(ln_M_z1_),label=lmodel[1])
+	plt.plot(lz_base,np.array(ln_M_z0)/np.array(ln_M_z0_),'--',label=lmodel[0])
+	plt.xlabel(r'$z$')
+	plt.ylabel(r'Ratio')
+	plt.legend()
+	plt.xlim(7.5, 20)
+	plt.ylim(10,1e4)
+	plt.yscale('log')
+	plt.tight_layout()
+	plt.savefig('nM_ratio_z.pdf')
+	plt.show()
+	
 	plt.figure()
 	plt.plot(lz_base,ln_M_z00,label='EdS')
 	plt.plot(lz_base,ln_M_z000,'--',label='Naoz et al. 2006')
@@ -90,7 +111,7 @@ if __name__ == "__main__":
 	plt.tight_layout()
 	plt.savefig(rep0+'nps_M_z.pdf')
 	plt.show()
-
+	
 	lt_base = [TZ(x)/YR/1e9 for x in lz_base]
 	plt.figure()
 	plt.plot(lz_base,ln_M_z1,label=lmodel[1])
@@ -99,7 +120,7 @@ if __name__ == "__main__":
 	#plt.xlabel(r'$t\ [\mathrm{Gyr}]$')
 	plt.ylabel(r'$n(10^{9}-10^{10}\ M_{\odot})\ [h^{3}\mathrm{Mpc^{-3}}]$')
 	plt.xlim(0,20)
-	plt.ylim(0,1.5)
+	plt.ylim(0,3.5)
 	plt.legend()
 	plt.tight_layout()
 	plt.savefig(rep0+'n_M_z.pdf')
@@ -110,12 +131,13 @@ if __name__ == "__main__":
 	plt.xlabel(r'$t\ [\mathrm{Gyr}]$')
 	plt.ylabel(r'$n(10^{9}-10^{10}\ M_{\odot})\ [h^{3}\mathrm{Mpc^{-3}}]$')
 	#plt.xlim(0,20)
-	plt.ylim(0,1.5)
+	plt.ylim(0,3.5)
 	plt.legend()
 	plt.tight_layout()
 	plt.savefig(rep0+'n_M_t.pdf')
 	#plt.show()
 	"""
+
 	nz0 = interp1d(lz_base,np.log10(ln_M_z0))
 	nz00 = interp1d(lz_base,np.log10(ln_M_z00))
 	nz000 = interp1d(lz_base,np.log10(ln_M_z000))
@@ -170,6 +192,7 @@ if __name__ == "__main__":
 		plt.savefig(rep0+'Tnu_syn.pdf')
 	print('Tnu_syn at 310 MHz: {} mK (CDM)'.format(Tnu(310,Jnu_cosmic(zend,L=L_nu_syn0,nu=310,n_a=n_a_CDM,mode=tmode))))
 
+	"""
 	lz_syn = np.linspace(3,30,100)#np.logspace(-2,np.log10(30),100)
 	lJnu_syn0 = [Jnu_cosmic(max(x,zend),L=L_nu_syn0,nu=1420/(1+x),n_a=n_a_CDM,mode=tmode) for x in lz_syn]
 	lJnu_syn1 = [Jnu_cosmic(max(x,zend),L=L_nu_syn1,nu=1420/(1+x),n_a=n_a_WDM,mode=tmode) for x in lz_syn]
@@ -189,6 +212,7 @@ if __name__ == "__main__":
 		plt.savefig(rep0+'logTz_syn.pdf')
 	else:
 		plt.savefig(rep0+'Tz_syn.pdf')
+	"""
 
 	lp = np.linspace(2.0,3.0,21)
 	lT_syn0 = np.array([Tnu(310,Jnu_cosmic(zend,L=lambda x: jnu_syn_(10**x, 10**Lp0(y), y),nu=310,n_a=n_a_CDM,mode=tmode)) for y in lp])
@@ -317,6 +341,12 @@ if __name__ == "__main__":
 	fig = plt.figure()
 	ax1 = fig.add_subplot(111)
 	#ax2 = ax1.twiny()
+	for i in range(len(lz)):
+		if lz[i]<5:
+			if lJ1[i] < lJ1[i-1]:
+				lJ1[i]=lJ1[i-1]
+			if lJ0[i] < lJ0[i-1]:
+				lJ0[i]=lJ0[i-1]
 	ax1.plot(lz, Tnu(310,np.array(lJ1)), label=r'$\nu_{\mathrm{obs}}=310\ \mathrm{MHz}$, '+lmodel[1],lw=1)
 	ax1.plot(lz, Tnu(310,np.array(lJ0)), '--',label=r'$\nu_{\mathrm{obs}}=310\ \mathrm{MHz}$, '+lmodel[0],lw=1)
 	#ax1.plot(lz, lJ2, '-.', label=r'$>z$, $\nu_{\mathrm{obs}}=10^{4}\ \mathrm{MHz}$')
@@ -332,7 +362,7 @@ if __name__ == "__main__":
 	#ax2.set_xticklabels(['Post-reionization','203']+[str(int(x)) for x in 1420/(loc0+1)],size=11)
 	#ax2.set_xlabel(r'$\nu_{\mathrm{obs}}\ [\mathrm{MHz}]$')#=1420/(1+z)\ \mathrm{MHz}
 	#print([min(lJ2),max(lJ1)])
-	yup = np.min([1e4, np.max([60, np.max(Tnu(1420/(1+lz),np.array(lJz1))),np.max(Tnu(1420/(1+lz),np.array(lJz0))), np.max(Tnu(310,np.array(lJ0)))])*1.05])
+	yup = np.min([3.5e3, np.max([60, np.max(Tnu(1420/(1+lz),np.array(lJz1))),np.max(Tnu(1420/(1+lz),np.array(lJz0))), np.max(Tnu(310,np.array(lJ0)))])*1.05])
 	ax1.plot([6,6],[1e-9,yup],lw=0.5,color='k')
 	#ax1.plot([9.215,9.215],[1e-9,60],'--',lw=0.5,color='k')
 	#ax1.plot([12.593,12.593],[1e-9,60],'--',lw=0.5,color='k')
