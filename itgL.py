@@ -26,6 +26,7 @@ if __name__ == "__main__":
 		out0 = []
 		out1 = []
 		dlu0, dlu1 = [], []
+		dltot0, dltot1 = [], []
 		for sn in range(0,26):
 			if mode==0:
 				mesh = mesh_3d(low, up, bins, low, up, bins, low, up, bins)
@@ -204,23 +205,43 @@ if __name__ == "__main__":
 	print('H2 flux: {} (CDM), {} (WDM) [W m^-2]'.format(max(lflux1),max(lflux0)))
 	print('H2 flux at z = {}: {} (CDM), {} (WDM) [W m^-2]'.format(lu0[0][18],lflux1[-8],lflux0[-8]))
 
+	if tag!=0:
+		ref_ind = 20
+		Mv_ = 7e9
+		ltot0 = np.array(retxt(rep0+'Ltot_z_'+str(bins)+'_'+lmodel[1]+'.txt',4,1,0))
+		ltot1 = np.array(retxt(rep0+'Ltot_z_'+str(bins)+'_'+lmodel[0]+'.txt',4,1,0))
+		lMvir0 = np.array([Mv_*ltot0[2][i]/ltot0[2][ref_ind] for i in range(ltot0.shape[1])])
+		lMvir1 = np.array([Mv_*ltot1[2][i]/ltot1[2][ref_ind] for i in range(ltot1.shape[1])])
+		lvir0 = np.array([Lvir(lMvir0[i],ltot0[0][i]) for i in range(ltot0.shape[1])])
+		lvir1 = np.array([Lvir(lMvir1[i],ltot1[0][i]) for i in range(ltot1.shape[1])])
+
 	plt.figure()
-	plt.plot(lu0[0][lu0[1]>0],lu0[1][lu0[1]>0],label='diffuse, '+lmodel[1],marker='^')
-	plt.plot(lu1[0][lu1[1]>0],lu1[1][lu1[1]>0],label='diffuse, '+lmodel[0],ls='--',marker='^')
-	plt.plot(lu0[0][lu0[3]>0],luc0[lu0[3]>0]*0.1*5e33/10,label='core, '+lmodel[1],marker='o')
-	plt.plot(lu1[0][lu1[3]>0],luc1[lu1[3]>0]*0.1*5e33/10,label='core, '+lmodel[0],ls='--',marker='o')# ($\epsilon=0.05$, $M_{*}=10\ M_{\odot}$)
+	plt.plot(out0[0][out0[1]>0],out0[1][out0[1]>0],label=r'$L_{\mathrm{ff}}$, '+lmodel[1],marker='^')
+	plt.plot(out1[0][out1[1]>0],out1[1][out1[1]>0],label=r'$L_{\mathrm{ff}}$, '+lmodel[0],ls='--',marker='^')
+	plt.plot(lu0[0][lu0[1]>0],lu0[1][lu0[1]>0],label=r'Diffuse $L_{\mathrm{H_{2}}}$, '+lmodel[1],marker='o')
+	plt.plot(lu1[0][lu1[1]>0],lu1[1][lu1[1]>0],label=r'Diffuse $L_{\mathrm{H_{2}}}$, '+lmodel[0],ls='--',marker='o')
+	plt.plot(lu0[0][lu0[3]>0],luc0[lu0[3]>0]*0.1*5e33/10,label=r'Core $L_{\mathrm{H_{2}}}$, '+lmodel[1],marker='.')
+	plt.plot(lu1[0][lu1[3]>0],luc1[lu1[3]>0]*0.1*5e33/10,label=r'Core $L_{\mathrm{H_{2}}}$, '+lmodel[0],ls='--',marker='.')# ($\epsilon=0.05$, $M_{*}=10\ M_{\odot}$)
+	if tag!=0:
+		plt.plot(ltot0[0][ltot0[1]>0],ltot0[1][ltot0[1]>0],label=r'$L_{\mathrm{tot}}$, '+lmodel[1],marker='*')#,lw=1)
+		plt.plot(ltot1[0][ltot1[1]>0],ltot1[1][ltot1[1]>0],label=r'$L_{\mathrm{tot}}$, '+lmodel[0],marker='*',ls='--')#,lw=1)
+		plt.plot(ltot0[0][ltot0[2]>0],lvir0[ltot0[2]>0],label=r'$L_{\mathrm{vir}}$, '+lmodel[1],marker='x',lw=1)
+		plt.plot(ltot1[0][ltot1[2]>0],lvir1[ltot1[2]>0],label=r'$L_{\mathrm{vir}}$, '+lmodel[0],marker='x',ls='--',lw=1)
+		plt.plot(ltot0[0][ltot0[2]>0],3.2e4*lMvir0[ltot0[2]>0]*2e33,label=r'$L_{\mathrm{Edd}}$, '+lmodel[1],lw=3)
+		plt.plot(ltot1[0][ltot1[2]>0],3.2e4*lMvir1[ltot1[2]>0]*2e33,label=r'$L_{\mathrm{Edd}}$, '+lmodel[0],ls='--',lw=3)
 	plt.xlabel(r'$z$')
-	plt.xlim(min(lu0[0][lu0[1]>0])-0.1,max(lu1[0][lu1[1]>0])+0.1)
-	plt.ylabel(r'$L_{\mathrm{H_{2}}}\ [\mathrm{erg\ s^{-1}}]$')
+	#plt.xlim(min(lu0[0][lu0[1]>0])-0.1,max(lu1[0][lu1[1]>0])+0.1)
+	plt.xlim(min(lu0[0][lu0[1]>0])-0.1,30)
+	plt.ylabel(r'$L\ [\mathrm{erg\ s^{-1}}]$')
 	if sca!=0:
 		plt.yscale('log')
 		#plt.xscale('log')
 	plt.legend()
 	plt.tight_layout()
 	if sca==0:
-		plt.savefig(rep0+'LH2_z_'+str(bins)+'.pdf')
+		plt.savefig(rep0+'Ltot_z_'+str(bins)+'.pdf')
 	else:
-		plt.savefig(rep0+'logLH2_z_'+str(bins)+'.pdf')
+		plt.savefig(rep0+'logLtot_z_'+str(bins)+'.pdf')
 
 	plt.figure()
 	plt.plot(lu0[0][lu0[2]>0],lu0[2][lu0[2]>0],label=lmodel[1],marker='^')

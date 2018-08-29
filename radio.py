@@ -213,7 +213,7 @@ def H2_line_dis(T):
 
 def luminosity_syn(sn, facB = 1.0, facn = 1.0, p_index = 2.5, rep = './', box = [[1900]*3,[2000]*3], Tsh = 1e4, base = 'snapshot', ext = '.hdf5', ncore = 4, X=0.76):
 	xh = 4*X/(1+3*X)
-	mu0 = 4/(1+3*X)
+	#mu0 = 4/(1+3*X)
 	ds = yt.load(rep+base+'_'+str(sn).zfill(3)+ext)
 	z = ds['Redshift']
 	ad = ds.box(box[0],box[1])
@@ -251,6 +251,84 @@ def luminosity_syn(sn, facB = 1.0, facn = 1.0, p_index = 2.5, rep = './', box = 
 	out0 = np.sum([output.get() for p in processes])
 	return [z, out0*4*np.pi, p_index]
 
+def luminosity_tot(sn, rep = './', box = [[1750]*3,[2250]*3], nsh = 1.0, nsh2 = 1e-4, base = 'snapshot', ext = '.hdf5', ncore = 4, X=0.76, h = 0.6774, Om = 0.315):#,  Rv = 50.0, center=[2e3]*3):
+	start = time.time()
+	#H0 = h*100*UV/UL/1e3
+	#rho0 = Om*H0**2*3/8/np.pi/GRA
+	#l_box = np.abs(np.array(box[1])-np.array(box[0]))
+	#Vc = l_box[0]*l_box[1]*l_box[2]*(UL/h)**3
+	#M_bg = rho0*Vc*1e10/UM
+
+	xh = 4*X/(1+3*X)
+	#mu0 = 4/(1+3*X)
+	ds = yt.load(rep+base+'_'+str(sn).zfill(3)+ext)
+	z = ds['Redshift']
+	ad = ds.box(box[0],box[1])
+	#ad0 = ds.box(np.array(center)-Rv)
+	keys = ds.field_list
+	tag = np.sum([x[0] == 'PartType3' for x in keys])
+	tag_ = np.sum([x[0] == 'PartType4' for x in keys])
+	if tag>0:
+		Msink = np.array(np.sum(ad[('PartType3','Masses')].to('Msun')))#/ad[('PartType0','Masses')][0])
+	else:
+		Msink = 0.0
+	if tag_>0:
+		Msink += np.array(np.sum(ad[('PartType4','Masses')].to('Msun')))
+	#M_tot = np.array(np.sum(ad[('PartType0','Masses')].to('Msun')) + np.sum(ad[('PartType1','Masses')].to('Msun'))) + Msink
+	#delta = M_tot/M_bg
+
+	shock = np.logical_or(ad[('PartType0','Density')].to_equivalent("cm**-3", "number_density",mu=mmw(ad[('PartType0','Primordial HII')])) > nsh, ad[('PartType0','Primordial H2')]>nsh2)
+	nump = ad[('PartType0','Coordinates')][shock].shape[0]
+	ln = np.array(ad[('PartType0','Density')][shock].to_equivalent("cm**-3", "number_density",mu=mmw(ad[('PartType0','Primordial HII')][shock])))
+	lm = ad[('PartType0','Masses')][shock]
+	lrho = ad[('PartType0','Density')][shock]
+	lT = np.array(temp(ad[('PartType0','InternalEnergy')][shock],ad[('PartType0','Primordial HII')][shock]))
+	lxH2 = ad[('PartType0','Primordial H2')][shock]
+	lxH0 = ad[('PartType0','Primordial HI')][shock]
+	lxHD = ad[('PartType0','Primordial HD')][shock]
+	lxHII = ad[('PartType0','Primordial HII')][shock]
+	lxe = ad[('PartType0','Primordial e-')][shock]
+	np_core = int(nump/ncore)
+	lpr = [[i*np_core, (i+1)*np_core] for i in range(ncore-1)] + [[(ncore-1)*np_core, nump]]
+	print(lpr)
+	manager = mp.Manager()
+	output = manager.Queue()
+	def sess(pr0, pr1):
+		Ltot = 0
+		for i in range(pr0, pr1):
+			n = ln[i]*xh
+			m = lm[i]
+			rho = lrho[i]
+			T = lT[i]
+			V = np.array((m/rho).to('cm**3'))
+			nH2 = n*lxH2[i]
+			nH0 = n*lxH0[i]
+			nHD = n*lxHD[i]*4.3e-5
+			ne = n*lxe[i]
+			nHII = n*lxHII[i]
+			nHeI = ln[i]*(1-xh)
+			Lam = LambdaBre(T, nHII, 0, 0, ne) + LambdaIC(T, z, ne) + LambdaHeI(T, nHeI, ne) +\
+				LambdaHI(T, nH0, ne) + LambdaHII(T, nHII, ne) +\
+				LambdaH2(T, nH2, nH0) + LambdaHD(T, nHD, nH0, n)
+			Ltot += Lam*V
+		output.put(Ltot)
+	processes = [mp.Process(target=sess, args=(lpr[i][0], lpr[i][1])) for i in range(ncore)]
+	for p in processes:
+		p.start()
+	for p in processes:
+		p.join()
+	out0 = [output.get() for p in processes]
+	out = np.sum(out0)
+	MV = 0
+	if out>0:
+		obj = caesar.CAESAR(ds)
+		obj.member_search()
+		lh = obj.halos
+		if len(lh)>0:
+			MV = virial_mass(lh[0])
+	print('Time taken: {} s, MV_max: {} [Msun]'.format(time.time()-start, MV))
+	return [z, out, MV, Msink]
+			
 def luminosity_particle(sn, rep = './', box = [[1900]*3,[2000]*3], nsh = 1e-4, base = 'snapshot', ext = '.hdf5', ncore = 4, X=0.76, nline=42, Tsh = 1e4, nmax = 1.0):
 	xh = 4*X/(1+3*X)
 	mu0 = 4/(1+3*X)
