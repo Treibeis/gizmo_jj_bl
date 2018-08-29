@@ -1,4 +1,5 @@
 from radio import *
+Vz = 4**3 * 0.3783187*0.3497985*0.399293243 /0.6774**3
 
 if __name__ == "__main__":
 	sca =int(sys.argv[1])
@@ -23,21 +24,21 @@ if __name__ == "__main__":
 
 	plt.figure()
 	#plt.plot(lz0[d0_III[2]>0],(d0_III[2]+d0_II[2])[d0_III[2]>0],label=lmodel[1])
-	plt.plot(lz0[d0_III[2]>0],d0_III[2][d0_III[2]>0],label='PopIII, '+lmodel[1])
-	plt.plot(lz1[d1_III[2]>0],d1_III[2][d1_III[2]>0],label='PopIII, '+lmodel[0],ls='--')
-	plt.plot(lz0_[d0_II[2]>0],d0_II[2][d0_II[2]>0],label='PopII, '+lmodel[1],ls='-.')
-	plt.plot(lz1_[d1_II[2]>0],d1_II[2][d1_II[2]>0],label='PopII, '+lmodel[0],ls=':')
+	plt.plot(lz0[d0_III[2]>0],d0_III[2][d0_III[2]>0]/Vz,label='PopIII, '+lmodel[1])
+	plt.plot(lz1[d1_III[2]>0],d1_III[2][d1_III[2]>0]/Vz,label='PopIII, '+lmodel[0],ls='--')
+	plt.plot(lz0_[d0_II[2]>0],d0_II[2][d0_II[2]>0]/Vz,label='PopII, '+lmodel[1],ls='-.')
+	plt.plot(lz1_[d1_II[2]>0],d1_II[2][d1_II[2]>0]/Vz,label='PopII, '+lmodel[0],ls=':')
 	#plt.plot(lz1[d1_III[2]>0],(d1_III[2]+d1_II[2])[d1_III[2]>0],label=lmodel[0],ls='--')
 	plt.xlabel(r'$z$')
-	plt.ylabel(r'$\mathrm{SFR}\ [M_{\odot}\ \mathrm{yr^{-1}}]$')
+	plt.ylabel(r'$\mathrm{SFRD}\ [M_{\odot}\ \mathrm{yr^{-1}\ Mpc^{-3}}]$')
 	if sca>0:
 		plt.yscale('log')
 	plt.legend()
 	plt.tight_layout()
 	if sca==0:
-		plt.savefig(rep0+'SFR_z.pdf')
+		plt.savefig(rep0+'SFRD_z.pdf')
 	else:
-		plt.savefig(rep0+'logSFR_z.pdf')
+		plt.savefig(rep0+'logSFRD_z.pdf')
 
 	lsm0 = np.cumsum(d0_III[1]*d0_III[2])
 	lsm0_ = np.cumsum(d0_II[1]*d0_II[2])

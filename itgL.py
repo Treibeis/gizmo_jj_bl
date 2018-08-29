@@ -2,7 +2,8 @@ from radio import *
 
 if __name__ == "__main__":
 	tag = 1
-	sca = 0
+	sca = 1
+	sfdbk = 1
 
 	ncore = 6
 	nline = 42
@@ -107,7 +108,7 @@ if __name__ == "__main__":
 	plt.xlabel(r'$z$')
 	plt.xlim(min(lu0[0][lu0[1]>0])-0.1,max(lu1[0][lu1[1]>0])+0.1)
 	plt.ylabel(r'$F_{\mathrm{H_{2}}}\ [\mathrm{W\ m^{-2}}]$')
-	plt.title(r'$M_{\mathrm{vir}}=6.9\ (7.67)\times 10^{9}\ M_{\odot}$ in WDM (CDM) csomology,'+'\n with stellar feedbacks',size=12)
+	#plt.title(r'$M_{\mathrm{vir}}=6.9\ (7.67)\times 10^{9}\ M_{\odot}$ in WDM (CDM) cosmology,'+'\n with stellar feedbacks',size=12)
 	if sca!=0:
 		plt.yscale('log')
 		#plt.xscale('log')
@@ -179,8 +180,8 @@ if __name__ == "__main__":
 
 	lz0 = lu0[0][lu0[1]>0]
 	lz1 = lu1[0][lu1[1]>0]
-	llu0 = (lu0[1]+luc0*0.05*5e33/10)[lu0[1]>0]
-	llu1 = (lu1[1]+luc1*0.05*5e33/10)[lu1[1]>0]
+	llu0 = (lu0[1]+luc0*0.1*5e33/10)[lu0[1]>0]
+	llu1 = (lu1[1]+luc1*0.1*5e33/10)[lu1[1]>0]
 	lflux0 = [llu0[i]/(DZ(lz0[i])*(1+lz0[i]))**2/4/np.pi/1e3 for i in range(len(lz0))]
 	lflux1 = [llu1[i]/(DZ(lz1[i])*(1+lz1[i]))**2/4/np.pi/1e3 for i in range(len(lz1))]
 	plt.figure()
@@ -206,8 +207,8 @@ if __name__ == "__main__":
 	plt.figure()
 	plt.plot(lu0[0][lu0[1]>0],lu0[1][lu0[1]>0],label='diffuse, '+lmodel[1],marker='^')
 	plt.plot(lu1[0][lu1[1]>0],lu1[1][lu1[1]>0],label='diffuse, '+lmodel[0],ls='--',marker='^')
-	plt.plot(lu0[0][lu0[3]>0],luc0[lu0[3]>0]*0.05*5e33/10,label='core, '+lmodel[1],marker='o')
-	plt.plot(lu1[0][lu1[3]>0],luc1[lu1[3]>0]*0.05*5e33/10,label='core, '+lmodel[0],ls='--',marker='o')# ($\epsilon=0.05$, $M_{*}=10\ M_{\odot}$)
+	plt.plot(lu0[0][lu0[3]>0],luc0[lu0[3]>0]*0.1*5e33/10,label='core, '+lmodel[1],marker='o')
+	plt.plot(lu1[0][lu1[3]>0],luc1[lu1[3]>0]*0.1*5e33/10,label='core, '+lmodel[0],ls='--',marker='o')# ($\epsilon=0.05$, $M_{*}=10\ M_{\odot}$)
 	plt.xlabel(r'$z$')
 	plt.xlim(min(lu0[0][lu0[1]>0])-0.1,max(lu1[0][lu1[1]>0])+0.1)
 	plt.ylabel(r'$L_{\mathrm{H_{2}}}\ [\mathrm{erg\ s^{-1}}]$')
@@ -253,13 +254,34 @@ if __name__ == "__main__":
 		plt.savefig(rep0+'logMsink_z_'+str(bins)+'.pdf')
 	#plt.show()
 	
+	tcore = 10
+	lt0[1:] = lt0[1:]-tcore
+	lt1[1:] = lt1[1:]-tcore
+	luc0 = lu0[3]-Ms_t0(lt0)
+	luc1 = lu1[3]-Ms_t1(lt1)
 
-	
+	lz0 = lu0[0][lu0[3]>0]
+	lz1 = lu1[0][lu1[3]>0]
+	lHII0 = epsilon_ff*luc0*UM/(1e10*mmw()*100*PROTON)
+	lHII1 = epsilon_ff*luc1*UM/(1e10*mmw()*100*PROTON)
+	print('epsilon_ff: {} [erg s^-1]'.format(epsilon_ff))
+
 	plt.figure()
 	plt.plot(out0[0][out0[1]>0],out0[1][out0[1]>0],label=lmodel[1],marker='^')
-	plt.plot(out1[0][out1[1]>0],out1[1][out1[1]>0],label=lmodel[0],ls='--',marker='o')
+	plt.plot(out1[0][out1[1]>0],out1[1][out1[1]>0],label=lmodel[0],ls='--',marker='^')
+	if sfdbk!=0:
+		plt.plot(lz0, lHII0[lu0[3]>0],label=r'Unresolved, '+lmodel[1],marker='o')
+		plt.plot(lz1, lHII1[lu1[3]>0],label=r'Unresolved, '+lmodel[0],ls='--',marker='o')
+	else:
+		plt.plot(lz0, lHII0[lu0[3]>0],label=r'Unresolved: radiative, '+lmodel[1],marker='o')
+		plt.plot(lz1, lHII1[lu1[3]>0],label=r'Unresolved: radiative, '+lmodel[0],ls='--',marker='o')
+	if sfdbk==0:
+		lHII0_ = epsilon_ff_*lu0[3]*UM/(1e10*mmw()*100*PROTON)
+		lHII1_ = epsilon_ff_*lu1[3]*UM/(1e10*mmw()*100*PROTON)
+		plt.plot(lz0, lHII0_[lu0[3]>0],label=r'Unresolved: collisional, '+lmodel[1],lw=1,marker=u'$\u2193$')#r'$\downarrow$')
+		plt.plot(lz1, lHII1_[lu1[3]>0],label=r'Unresolved: collisional, '+lmodel[0],lw=1,ls='--',marker=u'$\u2193$')#'$\downarrow$')
 	plt.xlabel(r'$z$')
-	plt.ylabel(r'$L\ [\mathrm{erg\ s^{-1}}]$')
+	plt.ylabel(r'$L_{\mathrm{ff}}\ [\mathrm{erg\ s^{-1}}]$')
 	if sca!=0:
 		plt.yscale('log')
 		#plt.xscale('log')

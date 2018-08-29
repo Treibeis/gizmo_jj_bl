@@ -8,7 +8,12 @@ import multiprocessing as mp
 from matplotlib.colors import LogNorm
 import scipy.stats as stats
 from cosmology import *
+from coolingf import *
 
+epsilon_ff = LambdaBre(T=2e4, nhII=93.0, nheII=0.0, nheIII=0.0, ne=93.0)
+epsilon_ff_ = LambdaBre(T=1e3, nhII=93.0*1e-4, nheII=0.0, nheIII=0.0, ne=93.0*1e-4)
+
+"""
 def T_cosmic(z, alpha = -4, beta = 1.27, z0 = 189.6, zi = 1100, T0 = 3300):
 	def integrand(logt):
 		return alpha/3.0-(2+alpha)/3.0*(1-np.exp(-(ZT(logt)/z0)**beta))
@@ -33,6 +38,10 @@ def Tvir(m = 1e10, z = 10.0, delta = 200):
 	M = m*UM/1e10
 	Rvir = (M/(rhom(1/(1+z))*delta)*3/4/np.pi)**(1/3)
 	return 3*GRA*M*mmw()*PROTON/Rvir/5/(3*BOL)
+"""
+
+def SFR_ff(nu, Lnu, Te = 2e4):
+	return 4.6e-28 * (Te/1e4)**-0.45 * (nu/1e9)**0.1 * Lnu
 
 import hmf
 import hmf.wdm
@@ -168,7 +177,6 @@ def mesh_3d(x0 = 1750, x1 = 2250, xbin = 100, y0 = 1750, y1 = 2250, ybin = 100, 
 	d['mesh'] = [X, Y, Z]
 	return d
 
-from coolingf import *
 # 0-0 S(0-5), 1-0 Q(1), 1-0 O(3,5), 
 # 0-0 S(6-15)
 # 1-0 O(2,4,6-8) 
