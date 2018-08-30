@@ -320,7 +320,7 @@ def luminosity_tot(sn, rep = './', box = [[1750]*3,[2250]*3], nsh = 1.0, nsh2 = 
 	out0 = [output.get() for p in processes]
 	out = np.sum(out0)
 	MV = 0
-	if out>0:
+	if z<15:
 		obj = caesar.CAESAR(ds)
 		obj.member_search()
 		lh = obj.halos

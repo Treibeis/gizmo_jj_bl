@@ -6,7 +6,7 @@ if __name__ == "__main__":
 	#rep0 = 'halo1/'
 	ldir = ['NL4_zoom_wdm/'+rep0, 'NL4_zoom_cdm/'+rep0]
 	#ldir = ['halo1_wdm/','halo1_cdm/']
-	nsh = 1.0
+	nsh = 1.0e-2
 	bins = int(sys.argv[1])
 	if len(sys.argv)>3:
 		low, up = int(sys.argv[2]), int(sys.argv[3])
