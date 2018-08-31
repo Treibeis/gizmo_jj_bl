@@ -20,14 +20,21 @@ if __name__ == "__main__":
 	fs1 = interp1d(lz1[d1_III[2]>0],np.log10(d1_III[2][d1_III[2]>0]))
 	fs1_ = interp1d(lz1_[d1_II[2]>0],np.log10(d1_II[2][d1_II[2]>0]))
 
+	print('Volume of the zoom-in region: {} [Mpc^3]'.format(Vz))
 	print('SFR_popIII ratio: {}, SFR_popII ratio: {}'.format(10**fs0(8.5)/10**fs1(8.5), 10**fs0_(8.5)/10**fs1_(8.5)))
+
+	repref = 'boyuan_sfrd/'
+	refIII = np.array(retxt(repref+'popIII_sfr_s2_skx.txt',4,0,0))
+	refII = np.array(retxt(repref+'popII_sfr_s2_skx.txt',4,0,0))
 
 	plt.figure()
 	#plt.plot(lz0[d0_III[2]>0],(d0_III[2]+d0_II[2])[d0_III[2]>0],label=lmodel[1])
-	plt.plot(lz0[d0_III[2]>0],d0_III[2][d0_III[2]>0]/Vz,label='PopIII, '+lmodel[1])
-	plt.plot(lz1[d1_III[2]>0],d1_III[2][d1_III[2]>0]/Vz,label='PopIII, '+lmodel[0],ls='--')
-	plt.plot(lz0_[d0_II[2]>0],d0_II[2][d0_II[2]>0]/Vz,label='PopII, '+lmodel[1],ls='-.')
-	plt.plot(lz1_[d1_II[2]>0],d1_II[2][d1_II[2]>0]/Vz,label='PopII, '+lmodel[0],ls=':')
+	plt.plot(lz0[d0_III[2]>0],d0_III[2][d0_III[2]>0]/Vz,label='PopIII, '+lmodel[1],lw=3)
+	plt.plot(lz1[d1_III[2]>0],d1_III[2][d1_III[2]>0]/Vz,label='PopIII, '+lmodel[0])
+	plt.plot(1/refIII[0][refIII[3]>0]-1, refIII[3][refIII[3]>0],label='PopIII, Jason:18',lw=0.5)
+	plt.plot(lz0_[d0_II[2]>0],d0_II[2][d0_II[2]>0]/Vz,label='PopII, '+lmodel[1],ls='--',lw=3)
+	plt.plot(lz1_[d1_II[2]>0],d1_II[2][d1_II[2]>0]/Vz,label='PopII, '+lmodel[0],ls='--')
+	plt.plot(1/refII[0][refII[3]>0]-1, refII[3][refII[3]>0],label='PopII, Jason:18',ls='--',lw=0.5)
 	#plt.plot(lz1[d1_III[2]>0],(d1_III[2]+d1_II[2])[d1_III[2]>0],label=lmodel[0],ls='--')
 	plt.xlabel(r'$z$')
 	plt.ylabel(r'$\mathrm{SFRD}\ [M_{\odot}\ \mathrm{yr^{-1}\ Mpc^{-3}}]$')
@@ -51,10 +58,10 @@ if __name__ == "__main__":
 	f1_ = interp1d(lz1_[lsm1_>0],np.log10(lsm1_[lsm1_>0]))
 
 	plt.figure()
-	plt.plot(lz0[lsm0>0],lsm0[lsm0>0],label='PopIII, '+lmodel[1])
-	plt.plot(lz1[lsm1>0],lsm1[lsm1>0],label='PopIII, '+lmodel[0],ls='--')
-	plt.plot(lz0_[lsm0_>0],lsm0_[lsm0_>0],label='PopII, '+lmodel[1],ls='-.')
-	plt.plot(lz1_[lsm1_>0],lsm1_[lsm1_>0],label='PopII, '+lmodel[0],ls=':')
+	plt.plot(lz0[lsm0>0],lsm0[lsm0>0],label='PopIII, '+lmodel[1],lw=3)
+	plt.plot(lz1[lsm1>0],lsm1[lsm1>0],label='PopIII, '+lmodel[0])
+	plt.plot(lz0_[lsm0_>0],lsm0_[lsm0_>0],label='PopII, '+lmodel[1],ls='--',lw=3)
+	plt.plot(lz1_[lsm1_>0],lsm1_[lsm1_>0],label='PopII, '+lmodel[0],ls='--')
 	plt.xlabel(r'$z$')
 	plt.ylabel(r'$M_{*}\ [M_{\odot}]$')
 	if sca>0:
