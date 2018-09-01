@@ -31,10 +31,6 @@ def MBE(T, n, Y, X = H_FRAC, gamma = 5.0/3):
 	xh = 4.0*X/(3*X+1)
 	out = 1050*(T/200)**1.5/(mu/1.22)**2.0/(xh*n/1e4)**0.5 * (gamma/(5.0/3))**2
 	return out
-	
-def mmw(xeH = XeH, xeHe = XeHe, X = Hfrac):
-	xh = 4*X/(1+3*X)
-	return 4.0/(1.0+3*X)/(xh*(1+xeH)+(1-xh)*(1+xeHe))
 
 # dd["density"].to_equivalent("cm**-3", "number_density",mu=mmw())
 

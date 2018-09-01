@@ -16,14 +16,21 @@ Nion = 3e-21*2.6e-13/(SPEEDOFLIGHT*1e-39*Nps_ref)
 def Lnu_minih(z):
 	return 4*np.pi*1e-39*Nion*rhom(1/(1+z))/(PROTON*mmw())
 
-def tau(M):
-	return 200e6*M/7e9
+def tau_M(t1, t2, M1, M2):
+	alpha = np.log(t1/t2)/np.log(M1/M2)
+	def func(m):
+		return t1*(m/M1)**alpha
+		#return 100e6
+	return func
 
-def Lnu_M(L, L_ref, M, M_ref, lognu_ref = 11):
+def tau_mini(z):
+	return 1/(2.6e-13*rhom(1/(1+z))/(PROTON*mmw()))/YR
+
+def Lnu_M(L, L_ref, M, M_ref, z, lognu_ref = 11):
 	alpha = np.log(L(lognu_ref)/L_ref)/np.log(M/M_ref)
 	#print(alpha)
 	def func(m, nu):
-		return L(np.log10(nu*1e6))*(m/M)**alpha
+		return L(np.log10(nu*1e6))*(m/M)**alpha * np.exp(-HBAR*2*np.pi*nu*1e6/BOL/Tvir(m, z))
 	return func
 
 Mup = lambda z: 2.5e7*((1+z)/10)**-1.5
@@ -34,72 +41,60 @@ def Lnu_M_linear(m, z):
 
 from scipy.interpolate import interp2d
 
-def dndm_z(z1=0, z0=31, mode=0, nbin=30, Mmax=10):
-	lz = np.linspace(z1, z0, 100)
-	out = []
-	if mode==0:
-		hmf_ = hmf.MassFunction()
-		hmf_.update(n=0.966, sigma_8=0.829,cosmo_params={'Om0':0.315,'H0':67.74},Mmin=np.log10(Mdown(max(z0,z1)))-1,Mmax=Mmax+1)
+def dndm_z(z1=0, z0=31, mode=0, nbin=100, Mmax=10, load=0):
+	if load==0:
+		lz = np.linspace(z1, z0, nbin)
+		out = []
+		if mode==0:
+			hmf_ = hmf.MassFunction()
+			hmf_.update(n=0.966, sigma_8=0.829,cosmo_params={'Om0':0.315,'H0':67.74},Mmin=np.log10(Mdown(max(z0,z1)))-1,Mmax=Mmax+1)
+		else:
+			hmf_ = hmf.wdm.MassFunctionWDM(wdm_mass=3)
+			hmf_.update(n=0.966, sigma_8=0.829,cosmo_params={'Om0':0.315,'H0':67.74},Mmin=np.log10(Mdown(max(z0,z1)))-1,Mmax=Mmax+1)
+		for z in lz:
+			hmf_.update(z=z)
+			out.append(hmf_.dndm)
+		lm = hmf_.m
+		totxt('mlist.txt',[lm],0,0,0)
+		totxt('zlist.txt',[lz],0,0,0)
+		totxt('dndm_'+lmodel[mode]+'.txt',out,0,0,0)
 	else:
-		hmf_ = hmf.wdm.MassFunctionWDM(wdm_mass=3)
-		hmf_.update(n=0.966, sigma_8=0.829,cosmo_params={'Om0':0.315,'H0':67.74},Mmin=np.log10(Mdown(max(z0,z1)))-1,Mmax=Mmax+1)
-	for z in lz:
-		hmf_.update(z=z)
-		out.append(hmf_.dndm)
-	return interp2d(hmf_.m,lz,out)
+		lm = retxt('mlist.txt',1,0,0)[0]
+		lz = retxt('zlist.txt',1,0,0)[0]
+		out = retxt('dndm_'+lmodel[mode]+'.txt',nbin,0,0)
+	return interp2d(lm,lz,out)
 
-dndm0 = dndm_z(mode=0)
-dndm1 = dndm_z(mode=1)
+dndm0 = dndm_z(mode=0,load=1)
+dndm1 = dndm_z(mode=1,load=1)
 
-def Jnu_final(z1, nu, z0 = 30, L = lambda x:1e30, Mref=7e9, dndm=dndm0, nzb = 30, h=0.6774):
+def Jnu_final(z1, nu, z0 = 30, L = lambda x:1e30, Mref=7e9, dndm=dndm0, zstep = 1.0, h=0.6774):
+	start = time.time()
+	nzb = int(abs(z0-z1)/zstep)+1
 	unit = YR*SPEEDOFLIGHT /(UL*1e3/h)**3/4/np.pi
 	lz = np.linspace(z1,z0,nzb)
 	ljnu = []
 	for z in lz:
 		mup = Mup(z)
 		mdown = Mdown(z)
-		lnu_m = Lnu_M(L, Lnu_minih(z), Mref, (mup+mdown)/2)
+		lnu_m = Lnu_M(L, Lnu_minih(z), Mref, (mup+mdown)/2, z)
+		tau = tau_M(200e6, tau_mini(z), Mref, (mup+mdown)/2)
 		def dndm_(z, m):
 			return dndm(m, z)
 		def integrand(m):
-			return lnu_m(m,nu*(1+z)) * tau(m) * abs(derivative(dndm_, z, 1e-2, args=(m,)))
+			return lnu_m(m,nu*(1+z)) * tau(m) * max(0.0,-derivative(dndm_, z, 1e-2, args=(m,)))
 		ljnu.append(quad(integrand, mdown, 10**Mmax, epsrel=-4)[0])
 	jnu_z = interp1d(lz, ljnu)
-	out = quad(jnu_z, z1, z0, epsrel=-4)[0]
-	return out*unit
-
-"""
-def Lnu_trec(z, nu, L, Mref = 7e9, Mmax = Mmax, h = 0.6774):
-	mup = Mup(z)
-	mdown = Mdown(z)
-	hmf_ = hmf.MassFunction()
-	hmf_.update(n=0.966, sigma_8=0.829,cosmo_params={'Om0':0.315,'H0':67.74},Mmin=np.log10(mdown)-1,Mmax=Mmax+1)
-	hmf_.update(z=z)
-	ngtm = interp1d(hmf_.m/h,hmf_.ngtm)
-	dndm = interp1d(hmf_.m/h,hmf_.dndm)
-	Nps = ngtm(mdown) - ngtm(10**Mmax)
-	lnu_m = Lnu_M(L, Lnu_minih(z), Mref, (mup+mdown)/2)
-	def integrand(m):
-		return lnu_m(m, nu) * tau(m) * dndm(m)
-	out = quad(integrand, mdown, 10**Mmax, epsrel=1e-4)[0]*YR/Nps
+	out = quad(jnu_z, z1, z0, epsrel=-4)[0]*unit*1e23
+	print('zend = {}, nu = {} [MHz], Jnu = {} [Jy], time: {} s'.format(z1, nu, out, time.time()-start))
 	return out
 
-def Jnu_cosmic_(z1, nu, z0 = 31, L = lambda x:1e30, n_a=n_a, nzb = 30):
-	lz = np.linspace(max(z1-1,0), z0+1, nzb)
-	lnu = [Lnu_trec(z, nu*(1+z), L) for z in lz]
-	lnutrec = interp1d(lz, lnu)
-	#print(lz, lnu)
-	#return lnutrec
-	def integrand(a):
-		return lnutrec(1.0/a-1.0) * max(derivative(n_a,a,1e-4),0.0) * SPEEDOFLIGHT /(UL*1e3/h)**3/4/np.pi
-	#print(integrand(1.0/16))
-	out = quad(integrand, 1/(1+z0), 1/(1+z1), epsrel=1e-4)[0]
-	return out
-"""
 def meanL(a=5/3, b=2.5, g=0.0, m=7):
 	return 1#m**(-a+g) * (1-b)*(10**(a-b-g+1)-1) /((a-b-g+1)*(10**(1-b)-1))
 
 if __name__ == "__main__":
+	load = 1
+	tag = 1
+	nbin = 50
 	rep0 = 'halo1_jj/'
 	lL_nu0 = retxt(rep0+'Lnu_cdm.txt',2,0,0)
 	L_nu0 = interp1d(np.log10(lL_nu0[0]),np.array(lL_nu0[1])*meanL())
@@ -107,161 +102,68 @@ if __name__ == "__main__":
 	lL_nu1 = retxt(rep0+'Lnu_wdm.txt',2,0,0)
 	L_nu1 = interp1d(np.log10(lL_nu1[0]),meanL()*np.array(lL_nu1[1]))
 
-	lLp0 = retxt(rep0+'Lp_syn_cdm.txt',3,0,0)
-	Lp0 = interp1d(lLp0[2],np.log10(meanL()*np.array(lLp0[1])))
+	if load==0:
+		hmf00 = hmf.MassFunction()
+		hmf00.update(n=0.966, sigma_8=0.829,cosmo_params={'Om0':0.315,'H0':67.74},Mmin=3,Mmax=9)
+		#hmf0 = hmf.MassFunction()
+		#hmf0.update(n=0.966, sigma_8=0.829,cosmo_params={'Om0':0.315,'H0':67.74},Mmin=8,Mmax=11)
+		nzbin = 81
+		lz_base=np.linspace(0,40,nzbin)#np.array([ZT(np.log10(x)) for x in lt_base])
+		#ln_M_z0 = np.zeros(nzbin)
+		ln_M_z00 = np.zeros(nzbin)
+		h = 0.6774
+		for i in range(len(lz_base)):
+			#hmf0.update(z=lz_base[i])
+			#hmf0.update(delta_c = d_delta(lz_base[i]))#
+			#lm = np.log10(hmf0.m/h)
+			#ln = np.log10(hmf0.ngtm)#*h**3)
+			#nm = interp1d(lm,ln)
+			#ln_M_z0[i] = (10**nm(9)-10**nm(Mmax))
 
-	lLp1 = retxt(rep0+'Lp_syn_wdm.txt',3,0,0)
-	Lp1 = interp1d(lLp1[2],np.log10(meanL()*np.array(lLp1[1])))
+			hmf00.update(z=lz_base[i])
+			hmf00.update(delta_c = d_delta(lz_base[i]))#
+			lm = np.log10(hmf00.m/h)
+			ln = np.log10(hmf00.ngtm)#*h**3)
+			nm = interp1d(lm,ln)
+			ln_M_z00[i] = (10**nm(-2*np.log10((1+lz_base[i])/10)+6)-10**nm(np.log10(2.5*((1+lz_base[i])/10)**-1.5)+7))
 
-	p_index = 2.198
-	A_syn0 = 10**Lp0(p_index)#1.1202483164633895e+59
-	A_syn1 = 10**Lp1(p_index)#1.8152757384235942e+58
-	facB = 1.0
-	facn = 3.4619e-5*0.6774**3*2 * 0.75/0.7523662791819455 /(meanL()*2)
-	print('beta_n = {}, fac = {}'.format(facn, meanL()))
-	#facn = 1.0
-	L_nu_syn0 = lambda x: jnu_syn_(10**x, A_syn0, p_index)*facB**((p_index+1)/4)*facn
-	L_nu_syn1 = lambda x: jnu_syn_(10**x, A_syn1, p_index)*facB**((p_index+1)/4)*facn
-
-	redshift = lLp0[0][0]
-	dL = DZ(redshift)*(1+redshift)
-	print('Syn Flux: {} [erg s^-1 cm^-2 Hz^-1]'.format((1+redshift)*L_nu_syn0(np.log10(1.4e9*(1+redshift)))/dL**2/4/np.pi))
-
-
-	#hmf000 = hmf.MassFunction()
-	#hmf000.update(n=0.966, sigma_8=0.829,cosmo_params={'Om0':0.315,'H0':67.74},Mmin=3,Mmax=9)
-	hmf00 = hmf.MassFunction()
-	hmf00.update(n=0.966, sigma_8=0.829,cosmo_params={'Om0':0.315,'H0':67.74},Mmin=3,Mmax=9)
-	hmf0 = hmf.MassFunction()
-	#hmf0.update(n=0.966, sigma_8=0.829,cosmo_params={'Om0':0.315,'H0':67.74},Mmin=8,Mmax=11)
-	hmf1 = hmf.wdm.MassFunctionWDM(wdm_mass=3)
-	#hmf1.update(n=0.966, sigma_8=0.829,cosmo_params={'Om0':0.315,'H0':67.74},Mmin=8,Mmax=11,wdm_mass=3)
-
-	nzbin = 81
-	#lt_base=np.linspace(TZ(30),TZ(0),31)/1e9/YR
-	lz_base=np.linspace(0,40,nzbin)#np.array([ZT(np.log10(x)) for x in lt_base])
-	ln_M_z0 = np.zeros(nzbin)
-	ln_M_z1 = np.zeros(nzbin)
-	ln_M_z00 = np.zeros(nzbin)
-	#ln_M_z000 = np.zeros(nzbin)
-	#ln_M_z0_ = np.zeros(nzbin)
-	#ln_M_z1_ = np.zeros(nzbin)
-	h = 0.6774
-	for i in range(len(lz_base)):
-		hmf0.update(z=lz_base[i])
-		hmf0.update(n=0.966, sigma_8=0.829,cosmo_params={'Om0':0.315,'H0':67.74},Mmin=np.log10(Mdown(lz_base[i]))-1,Mmax=Mmax+1)
-		#hmf0.update(delta_c = d_delta(lz_base[i]))#
-		lm = np.log10(hmf0.m/h)
-		ln = np.log10(hmf0.ngtm)#*h**3)
-		nm = interp1d(lm,ln)
-		ln_M_z0[i] = (10**nm(np.log10(Mdown(lz_base[i])))-10**nm(Mmax))
-		hmf1.update(z=lz_base[i])
-		hmf1.update(n=0.966, sigma_8=0.829,cosmo_params={'Om0':0.315,'H0':67.74},Mmin=np.log10(Mdown(lz_base[i]))-1,Mmax=Mmax+1)
-		#hmf0.update(delta_c = d_delta(lz_base[i]))#
-		lm = np.log10(hmf1.m/h)
-		ln = np.log10(hmf1.ngtm)#*h**3)
-		nm = interp1d(lm,ln)
-		ln_M_z1[i] = (10**nm(np.log10(Mdown(lz_base[i])))-10**nm(Mmax))
-		hmf00.update(z=lz_base[i])
-		#hmf00.update(delta_c = d_delta(lz_base[i]))#
+		hmf00.update(z=6)
 		lm = np.log10(hmf00.m/h)
 		ln = np.log10(hmf00.ngtm)#*h**3)
 		nm = interp1d(lm,ln)
-		ln_M_z00[i] = (10**nm(-2*np.log10((1+lz_base[i])/10)+6)-10**nm(np.log10(2.5*((1+lz_base[i])/10)**-1.5)+7))
-		#hmf000.update(z=lz_base[i])
-		#lm = np.log10(hmf000.m/h)
-		#ln = np.log10(hmf000.ngtm)#*h**3)
-		#nm = interp1d(lm,ln)
-		#ln_M_z000[i] = (10**nm(-2*np.log10((1+lz_base[i])/10)+6)-10**nm(np.log10(2.5*((1+lz_base[i])/10)**-1.5)+7))
-	hmf00.update(z=6)
-	lm = np.log10(hmf00.m/h)
-	ln = np.log10(hmf00.ngtm)#*h**3)
-	nm = interp1d(lm,ln)
-	ln_M_z_norm = (10**nm(-2*np.log10((1+6)/10)+6)-10**nm(np.log10(2.5*((1+6)/10)**-1.5)+7))
+		ln_M_z_norm = (10**nm(-2*np.log10((1+6)/10)+6)-10**nm(np.log10(2.5*((1+6)/10)**-1.5)+7))
+		totxt('Nps_z.txt',[lz_base, ln_M_z00],0,0,0)
+		totxt('Nps_norm.txt',[[ln_M_z_norm]],0,0,0)
+	else:
+		data = np.array(retxt('Nps_z.txt',2,0,0))
+		lz_base, ln_M_z00 = data[0], data[1]
+		ln_M_z_norm = retxt('Nps_norm.txt',1,0,0)[0][0]
 
 	lJ21_z = [10.5*((1+lz_base[i])/7)**-1.5*ln_M_z00[i]/ln_M_z_norm for i in range(len(lz_base))]
 	J21_z = interp1d(lz_base,np.log10(lJ21_z))
-#J21_z = lambda z: J21_z0(z)*(z>6) + np.log10(10**J21_z0(6)*np.exp((1/7-1/(1+z))*20))*(z<=6)
 
-	nz0 = interp1d(lz_base,np.log10(ln_M_z0))
+	#nz0 = interp1d(lz_base,np.log10(ln_M_z0))
 	nz00 = interp1d(lz_base,np.log10(ln_M_z00))
-	#nz000 = interp1d(lz_base,np.log10(ln_M_z000))
-	nz1 = interp1d(lz_base,np.log10(ln_M_z1))
-	def n_a_CDM(a,h=0.6774):
-		z = 1/a-1
-		return 10**nz0(z)
+	#def n_a_CDM(a,h=0.6774):
+	#	z = 1/a-1
+	#	return 10**nz0(z)
 	
 	def n_a_CDM0(a,h=0.6774):
 		z = 1/a-1
 		return 10**nz00(z)
 
-	#def n_a_CDM00(a,h=0.6774):
-	#	z = 1/a-1
-	#	return 10**nz000(z)
-
-	def n_a_WDM(a,h=0.6774):
-		z = 1/a-1
-		return 10**nz1(z)
-
-	test = Jnu_final(7.5, 310, L = L_nu0)
-	print(test)
-	"""
+	#test = Jnu_final(7.5, 310, L = L_nu0)
+	#test0 = Jnu_cosmic(7.5,L=L_nu0,nu=310,n_a=n_a_CDM,mode=1)
+	#print(test)
+	
 	JHII_z = lambda z: 0.3*(z<=6) + 0.3*(z>6)*n_a_CDM0(1/(1+z))/n_a_CDM0(1/7)
 
 	mode = int(sys.argv[1])
 	if len(sys.argv)>=3:
-		tmode = int(sys.argv[2])
-	else:
-		tmode = 0
-	if tmode==0:
-		zend = 0.0
+		zend = float(sys.argv[2])
 	else:
 		zend = 7.5
 
-	lnu = 10**np.linspace(np.log10(50),np.log10(1400),100)
-	lJnu_syn0 = [Jnu_cosmic(zend,L=L_nu_syn0,nu=x,n_a=n_a_CDM,mode=tmode) for x in lnu]
-	lJnu_syn1 = [Jnu_cosmic(zend,L=L_nu_syn1,nu=x,n_a=n_a_WDM,mode=tmode) for x in lnu]
-	plt.figure()
-	plt.plot(lnu, Tnu(lnu,np.array(lJnu_syn1)),label='Structure formation, '+lmodel[1])
-	plt.plot(lnu, Tnu(lnu,np.array(lJnu_syn0)),'--',label='Structure formation, '+lmodel[0])
-	plt.plot(lnu, 1e3*Tnu_sky(lnu),':',label='ARCADE 2')
-	plt.xlabel(r'$\nu_{\mathrm{obs}}\ [\mathrm{MHz}]$')
-	plt.ylabel(r'$\langle\delta T_{\mathrm{syn}}\rangle\ [\mathrm{mK}]$')
-	plt.legend()
-	plt.xlim(50,1400)
-	#plt.title(r'Synchrotron: $\beta_{B}='+str(facB)+r'$, $\beta_{n}='+str(facn*1e5)+r'\times 10^{-5}$, $p='+str(p_index)+'$',size=14)
-	plt.xscale('log')
-	if mode==0:
-		plt.yscale('log')
-	plt.tight_layout()
-	if mode==0:
-		plt.savefig(rep0+'logTnu_syn.pdf')
-	else:
-		plt.savefig(rep0+'Tnu_syn.pdf')
-	print('Tnu_syn at 310 MHz: {} mK (CDM)'.format(Tnu(310,Jnu_cosmic(zend,L=L_nu_syn0,nu=310,n_a=n_a_CDM,mode=tmode))))
-
-
-	lp = np.linspace(2.0,3.0,21)
-	lT_syn0 = np.array([Tnu(310,Jnu_cosmic(zend,L=lambda x: jnu_syn_(10**x, 10**Lp0(y), y),nu=310,n_a=n_a_CDM,mode=tmode)) for y in lp])
-	lT_syn1 = np.array([Tnu(310,Jnu_cosmic(zend,L=lambda x: jnu_syn_(10**x, 10**Lp1(y), y),nu=310,n_a=n_a_WDM,mode=tmode)) for y in lp])
-	plt.figure()
-	plt.plot(lp,1e3*Tnu_sky(310)/lT_syn1,label=lmodel[1])
-	plt.plot(lp,1e3*Tnu_sky(310)/lT_syn0,'--',label=lmodel[0])
-	plt.legend()
-	plt.xlim(2,3)
-	plt.xlabel(r'$p=2\alpha-3$')
-	plt.ylabel(r'$\beta_{B,-4}^{(p+1)/4}\beta_{n} \cdot T_{\mathrm{sky}}/\langle\delta T_{\mathrm{syn}}\rangle(310\ \mathrm{MHz})$')
-	if mode==0:
-		plt.yscale('log')
-	plt.tight_layout()
-	if mode==0:
-		plt.savefig(rep0+'logRat_syn.pdf')
-	else:
-		plt.savefig(rep0+'Rat_syn.pdf')
-	p0 = 2.198
-	print('Ratio (CDM): {}'.format(1e3*Tnu_sky(310)/Tnu(310,Jnu_cosmic(zend,L=lambda x: jnu_syn_(10**x, 10**Lp0(p0), p0),nu=310,n_a=n_a_CDM,mode=tmode))))
-	print('Ratio (WDM): {}'.format(1e3*Tnu_sky(310)/Tnu(310,Jnu_cosmic(zend,L=lambda x: jnu_syn_(10**x, 10**Lp1(p0), p0),nu=310,n_a=n_a_WDM,mode=tmode))))
-	
 	plt.figure()
 	plt.plot(lL_nu1[0], lL_nu1[1], label=lmodel[1])
 	plt.plot(lL_nu0[0], lL_nu0[1], '--', label=lmodel[0])
@@ -277,52 +179,52 @@ if __name__ == "__main__":
 	else:
 		plt.savefig(rep0+'Lnu_com.pdf')
 
-	lz = np.linspace(19.9,1/(1-5e-2)-1,100)
-	lJz0 = [Jnu_cosmic(zend,L=L_nu0,nu=1420/(1+z),n_a=n_a_CDM,mode=tmode) for z in lz]
-	lJz1 = [Jnu_cosmic(zend,L=L_nu1,nu=1420/(1+z),n_a=n_a_WDM,mode=tmode) for z in lz]
-	lJ0 = [Jnu_cosmic(z,L=L_nu0,nu=310,n_a=n_a_CDM,mode=tmode) for z in lz]
-	lJ1 = [Jnu_cosmic(z,L=L_nu1,nu=310,n_a=n_a_WDM,mode=tmode) for z in lz]
-	if tmode==1:
-		nmax1 = np.max(ln_M_z1)
-		zmax1 = lz_base[[i for i in range(len(lz_base)) if ln_M_z1[i]==nmax1][0]]
-		nmax0 = np.max(ln_M_z0)
-		zmax0 = lz_base[[i for i in range(len(lz_base)) if ln_M_z0[i]==nmax0][0]]
-		print('zmax: {} (CDM), {} (WDM)'.format(zmax0, zmax1))
-		J1max = Jnu_cosmic(zmax1,L=L_nu1,nu=310,n_a=n_a_WDM,mode=tmode)
-		J0max = Jnu_cosmic(zmax0,L=L_nu0,nu=310,n_a=n_a_CDM,mode=tmode)
-		for i in range(len(lJ0)):
-			if lz[i]<=zmax1:
-				lJ1[i] = J1max
-			if lz[i]<=zmax0:
-				lJ0[i] = J0max
+	if tag==0:
+		lz = np.linspace(19.9,1/(1-5e-2)-1,nbin)
+	#lJz0 = [Jnu_cosmic(zend,L=L_nu0,nu=1420/(1+z),n_a=n_a_CDM,mode=tmode) for z in lz]
+	#lJz1 = [Jnu_cosmic(zend,L=L_nu1,nu=1420/(1+z),n_a=n_a_WDM,mode=tmode) for z in lz]
+		lJ0 = [Jnu_final(z,L=L_nu0,nu=310,dndm=dndm0) for z in lz]
+		lJ1 = [Jnu_final(z,L=L_nu1,nu=310,dndm=dndm1) for z in lz]
+		totxt(rep0+'Jnuz.txt',[lz,lJ0,lJ1],0,0,0)
 
-	lnu = 10**np.linspace(np.log10(50),np.log10(1400),100)
-	lJnu0 = [Jnu_cosmic(zend,L=L_nu0,nu=x,n_a=n_a_CDM,mode=tmode) for x in lnu]
-	lJnu1 = [Jnu_cosmic(zend,L=L_nu1,nu=x,n_a=n_a_WDM,mode=tmode) for x in lnu]
+		lnu = 10**np.linspace(np.log10(50),np.log10(1400),nbin)
+		lJnu0 = [Jnu_final(zend,L=L_nu0,nu=x,dndm=dndm0) for x in lnu]
+		lJnu1 = [Jnu_final(zend,L=L_nu1,nu=x,dndm=dndm1) for x in lnu]
+		totxt(rep0+'Jnu.txt',[lnu,lJnu0,lJnu1],0,0,0)
+		T0 = Tnu(310,Jnu_final(zend,L=L_nu0,nu=310,dndm=dndm0))
+		T1 = Tnu(310,Jnu_final(zend,L=L_nu1,nu=310,dndm=dndm1))
+		totxt(rep0+'T310.txt',[[T0, T1]],0,0,0)
+
+		lnu_ = 10**np.linspace(np.log10(1e3),np.log10(9e4),nbin)
+		lJnu0_ = [Jnu_final(zend,L=L_nu0,nu=x,dndm=dndm0) for x in lnu]
+		lJnu1_ = [Jnu_final(zend,L=L_nu1,nu=x,dndm=dndm1) for x in lnu]
+		totxt(rep0+'Jnu_.txt',[lnu_,lJnu0_,lJnu1_],0,0,0)
+
+	else:
+		dataz = np.array(retxt(rep0+'Jnuz.txt',3,0,0))
+		datanu = np.array(retxt(rep0+'Jnu.txt',3,0,0))
+		datanu_ = np.array(retxt(rep0+'Jnu_.txt',3,0,0))
+		dT = retxt(rep0+'T310.txt',1,0,0)[0]
+		T0, T1 = dT[0], dT[1]
+		lz, lJ0, lJ1 = dataz[0], dataz[1], dataz[2]
+		lnu, lJnu0, lJnu1 = datanu[0], datanu[1], datanu[2]
+		lnu_, lJnu0_, lJnu1_ = datanu_[0], datanu_[1], datanu_[2]
+		
+
 	fig = plt.figure()
 	ax1 = fig.add_subplot(111)
-	#ax2 = ax1.twiny()
 	ax1.plot(lnu, Tnu(lnu,np.array(lJnu1)), label=r'Structure formation, '+lmodel[1],lw=1)
 	ax1.plot(lnu, Tnu(lnu,np.array(lJnu0)), label=r'Structure formation, '+lmodel[0],ls='--',lw=1)
-	ax1.plot(lnu, Tnu(lnu,JHII_z(6)),'-.',label=r'Minihalo $\mathrm{H_{II}}$ regions',lw=1)# ($M_{*}\sim 100\ M_{\odot})$',lw=1)
-	#ax1.plot(lnu[lnu<1420/7], Tnu(lnu[lnu<1420/7],10**J21_z(1420/lnu[lnu<1420/7]-1)),color='r',ls=':',lw=1)
-	ax1.plot(lnu[lnu>0], Tnu(lnu[lnu>0],10**J21_z(1420/lnu[lnu>0]-1)), ls=':',color='r', label=r'21 cm emission',lw=1)#, $\nu_{\mathrm{obs}}=1420/(1+z)\ \mathrm{MHz}$',lw=1)
+	ax1.plot(lnu, Tnu(lnu,JHII_z(6)),'-.',label=r'Minihalo $\mathrm{H_{II}}$ regions',lw=1)
+	ax1.plot(lnu[lnu>0], Tnu(lnu[lnu>0],10**J21_z(1420/lnu[lnu>0]-1)), ls=':',color='r', label=r'21 cm emission',lw=1)
 	lTnu_IGM = [Tnu(x,Jnu_bg(x)) for x in lnu]
 	ax1.plot(lnu, lTnu_IGM, ls='-.',lw=2,color='g',label=r'ionized diffuse IGM')
-	ax1.plot(lnu,Tnu_SKA(lnu),'k--',label=r'SKA',lw=2)#, 10$\sigma$, $10^{3}$ h',lw=2)
+	ax1.plot(lnu,Tnu_SKA(lnu),'k--',label=r'SKA',lw=2)
 	ax1.fill_between(lnu,1e3*Tnu_sky_ff(lnu,-1),1e3*Tnu_sky_ff(lnu,1),facecolor='gray',label=r'$T_{\mathrm{ff}}^{\mathrm{G}}$',alpha=0.5)
-	#ax2.set_xscale('log')
-	#loc = [1420/3.0,1420/7.0,1420/10.215,1420/13.593,1420/21]
-	#ax2.set_xticks(loc)
-	#ax2.set_xticklabels(['Post-reionization','6.0','9.2','13.6','20'],size=11)
-	#ax2.set_xlabel(r'$z$')#=1420/(1+z)\ \mathrm{MHz}
 	yup = np.max([160.0,np.max(Tnu(lnu,np.array(lJnu1))),np.max(Tnu(lnu,np.array(lJnu0)))])*1.05
 	ax1.plot([1420/7,1420/7],[1e-4,yup],lw=0.5,color='k')
-	#ax1.plot([1420/10.215,1420/10.215],[1e-3,210.0],'--',lw=0.5,color='k')
-	#ax1.plot([1420/13.593,1420/13.593],[1e-3,210.0],'--',lw=0.5,color='k')
 	ax1.fill_between([1420/7,1400],[1e-4,1e-4],[yup,yup],facecolor='gray',alpha=0.2)
 	ax1.set_xlim(50,1400)
-	#ax2.set_xlim(ax1.get_xlim())
 	ax1.set_ylim(1e-4,yup)
 	ax1.set_xlabel(r'$\nu_{\mathrm{obs}}\ [\mathrm{MHz}]$')
 	ax1.set_ylabel(r'$\langle\delta T\rangle\ [\mathrm{mK}]$')
@@ -335,23 +237,19 @@ if __name__ == "__main__":
 		plt.savefig(rep0+'logTnu.pdf')
 	else:
 		plt.savefig(rep0+'Tnu.pdf')
-	print('Tnu at 310 MHz: {} (CDM) mK'.format(Tnu(310,Jnu_cosmic(zend,L=L_nu0,nu=310,n_a=n_a_CDM,mode=tmode))))
-	print('Tnu at 310 MHz: {} (WDM) mK'.format(Tnu(310,Jnu_cosmic(zend,L=L_nu1,nu=310,n_a=n_a_WDM,mode=tmode))))
-	#plt.show()
+	print('Tnu at 310 MHz: {} (CDM) mK'.format(T0))
+	print('Tnu at 310 MHz: {} (WDM) mK'.format(T1))
 
-	lnu = 10**np.linspace(np.log10(1e3),np.log10(9e4),100)
-	lJnu0 = [Jnu_cosmic(zend,L=L_nu0,nu=x,n_a=n_a_CDM,mode=tmode) for x in lnu]
-	lJnu1 = [Jnu_cosmic(zend,L=L_nu1,nu=x,n_a=n_a_WDM,mode=tmode) for x in lnu]
 	fig = plt.figure()
 	ax1 = fig.add_subplot(111)
-	ax1.plot(lnu/1e3, Tnu(lnu,np.array(lJnu1)), label=r'Structure formation, '+lmodel[1],lw=1)
-	ax1.plot(lnu/1e3, Tnu(lnu,np.array(lJnu0)), label=r'Structure formation, '+lmodel[0],ls='--',lw=1)
-	ax1.plot(lnu/1e3, Tnu(lnu,JHII_z(6)),'-.',label=r'Minihalo $\mathrm{H_{II}}$ regions',lw=1)# ($M_{*}\sim 100\ M_{\odot})$',lw=1)
-	ax1.plot(lnu/1e3, [Tnu(x,Jnu_bg(x)) for x in lnu], ls='-.',lw=2,color='g',label=r'ionized diffuse IGM')
-	ax1.plot(lnu/1e3,Tnu_SKA(lnu),'k--',label=r'SKA', lw=2)#, 10$\sigma$, $10^{3}$ h',lw=2)
-	ax1.fill_between(lnu/1e3,1e3*Tnu_sky_ff(lnu,-1),1e3*Tnu_sky_ff(lnu,1),facecolor='gray',label=r'$T_{\mathrm{ff}}^{\mathrm{G}}$',alpha=0.5)
+	ax1.plot(lnu_/1e3, Tnu(lnu_,np.array(lJnu1_)), label=r'Structure formation, '+lmodel[1],lw=1)
+	ax1.plot(lnu_/1e3, Tnu(lnu_,np.array(lJnu0_)), label=r'Structure formation, '+lmodel[0],ls='--',lw=1)
+	ax1.plot(lnu_/1e3, Tnu(lnu_,JHII_z(6)),'-.',label=r'Minihalo $\mathrm{H_{II}}$ regions',lw=1)
+	ax1.plot(lnu_/1e3, [Tnu(x,Jnu_bg(x)) for x in lnu_], ls='-.',lw=2,color='g',label=r'ionized diffuse IGM')
+	ax1.plot(lnu_/1e3,Tnu_SKA(lnu_),'k--',label=r'SKA', lw=2)
+	ax1.fill_between(lnu_/1e3,1e3*Tnu_sky_ff(lnu_,-1),1e3*Tnu_sky_ff(lnu_,1),facecolor='gray',label=r'$T_{\mathrm{ff}}^{\mathrm{G}}$',alpha=0.5)
 	ax1.set_xlim(1.0,90)
-	yup = np.max([0.31,np.max(Tnu(lnu,np.array(lJnu1))),np.max(Tnu(lnu,np.array(lJnu0)))])*1.05
+	yup = np.max([0.31,np.max(Tnu(lnu_,np.array(lJnu1))),np.max(Tnu(lnu_,np.array(lJnu0)))])*1.05
 	ax1.set_ylim(1e-6,yup)
 	ax1.set_xlabel(r'$\nu_{\mathrm{obs}}\ [\mathrm{GHz}]$')
 	ax1.set_ylabel(r'$\langle\delta T\rangle\ [\mathrm{mK}]$')
@@ -367,7 +265,6 @@ if __name__ == "__main__":
 	
 	fig = plt.figure()
 	ax1 = fig.add_subplot(111)
-	#ax2 = ax1.twiny()
 	for i in range(len(lz)):
 		if lz[i]<5:
 			if lJ1[i] < lJ1[i-1]:
@@ -376,27 +273,10 @@ if __name__ == "__main__":
 				lJ0[i]=lJ0[i-1]
 	ax1.plot(lz, Tnu(310,np.array(lJ1)), label=r'$\nu_{\mathrm{obs}}=310\ \mathrm{MHz}$, '+lmodel[1],lw=1)
 	ax1.plot(lz, Tnu(310,np.array(lJ0)), '--',label=r'$\nu_{\mathrm{obs}}=310\ \mathrm{MHz}$, '+lmodel[0],lw=1)
-	#ax1.plot(lz, lJ2, '-.', label=r'$>z$, $\nu_{\mathrm{obs}}=10^{4}\ \mathrm{MHz}$')
-	#ax1.plot(lz, Tnu(1420/(1+lz),JHII_z(6)),'-.',label=r'$\mathrm{H_{II}}$ regions ($M_{*}\sim 100\ M_{\odot})$',lw=2)
-	#ax1.plot(lz[lz>6], Tnu(1420/(1+lz[lz>6]),10**J21_z(lz[lz>6])),lw=2,color='r',ls=':')
-	#ax1.plot(lz, Tnu(1420/(1+lz),np.array(lJz1)), label=r'overall ($z='+str(zend)+'$), '+lmodel[1],lw=2,color='k')
-	#ax1.plot(lz, Tnu(1420/(1+lz),np.array(lJz0)), label=r'overall ($z='+str(zend)+'$), '+lmodel[0],lw=2,color='k',ls='--')
-	#ax1.plot(lz[lz>=0], Tnu(1420/(1+lz[lz>=0]),10**J21_z(lz[lz>=0])), ls=':',lw=2,color='r', label=r'21-cm emission, $\nu_{\mathrm{obs}}=1420/(1+z)\ \mathrm{MHz}$')
-	#ax1.plot(lz, [Tnu(1420/(1+x),Jnu_bg(1420/(1+x))) for x in lz], ls='-.',lw=2,color='g',label=r'ionized diffuse IGM')
-	loc0 = np.linspace(7.5,20.0,6)
-	loc = np.hstack([[2.0,6.0],loc0])
-	#ax2.set_xticks(loc)
-	#ax2.set_xticklabels(['Post-reionization','203']+[str(int(x)) for x in 1420/(loc0+1)],size=11)
-	#ax2.set_xlabel(r'$\nu_{\mathrm{obs}}\ [\mathrm{MHz}]$')#=1420/(1+z)\ \mathrm{MHz}
-	#print([min(lJ2),max(lJ1)])
-	yup = np.min([3.5e3, np.max([60, np.max(Tnu(1420/(1+lz),np.array(lJz1))),np.max(Tnu(1420/(1+lz),np.array(lJz0))), np.max(Tnu(310,np.array(lJ0)))])*1.05])
+	yup = np.max([60, np.max(Tnu(310,np.array(lJ0)))])*1.05
 	ax1.plot([6,6],[1e-9,yup],lw=0.5,color='k')
-	#ax1.plot([9.215,9.215],[1e-9,60],'--',lw=0.5,color='k')
-	#ax1.plot([12.593,12.593],[1e-9,60],'--',lw=0.5,color='k')
 	ax1.fill_between([0,6],[1e-9,1e-9],[yup,yup],facecolor='gray',alpha=0.2)
-	#ax2.set_title(r'$\langle L_{\nu}\rangle \sim 1-4\times 10^{24}\ \mathrm{erg\ s^{-1}\ Hz^{-1}}$, $10^{9}\lesssim M_{\mathrm{halo}}\ [h^{-1}M_{\odot}]\lesssim 10^{10}$,'+'\n'+r' $\nu_{\mathrm{obs}}\sim 1- 10^{7}\ [\mathrm{MHz}/(1+z)]$',size=12)#$10/(1+z)\lesssim \nu_{\mathrm{obs}}\ [\mathrm{MHz}]\lesssim 10^{7}/(1+z)$')
 	ax1.set_xlim(0,20)
-	#ax2.set_xlim(ax1.get_xlim())
 	ax1.set_ylim(1e-9,yup)
 	ax1.set_xlabel(r'$z_{\mathrm{end}}$')
 	ax1.set_ylabel(r'$\langle\delta T\rangle(>z_{\mathrm{end}}) [\mathrm{mK}]$')
@@ -411,8 +291,9 @@ if __name__ == "__main__":
 	lT_ = Tnu(310,np.array(lJ0))
 	zmax = lz[[i for i in range(len(lT_)) if lT_[i]==np.max(lT_)][0]]
 	print('Tnu at 310 MHz: {}, for z = {}'.format(np.max(lT_), zmax))
-	#plt.show()
 
+
+	"""
 	fig = plt.figure()
 	ax1 = fig.add_subplot(111)
 	ax2 = ax1.twiny()
@@ -494,7 +375,71 @@ if __name__ == "__main__":
 	"""
 
 
+	"""
+	lLp0 = retxt(rep0+'Lp_syn_cdm.txt',3,0,0)
+	Lp0 = interp1d(lLp0[2],np.log10(meanL()*np.array(lLp0[1])))
 
+	lLp1 = retxt(rep0+'Lp_syn_wdm.txt',3,0,0)
+	Lp1 = interp1d(lLp1[2],np.log10(meanL()*np.array(lLp1[1])))
+
+	p_index = 2.198
+	A_syn0 = 10**Lp0(p_index)#1.1202483164633895e+59
+	A_syn1 = 10**Lp1(p_index)#1.8152757384235942e+58
+	facB = 1.0
+	facn = 3.4619e-5*0.6774**3*2 * 0.75/0.7523662791819455 /(meanL()*2)
+	print('beta_n = {}, fac = {}'.format(facn, meanL()))
+	#facn = 1.0
+	L_nu_syn0 = lambda x: jnu_syn_(10**x, A_syn0, p_index)*facB**((p_index+1)/4)*facn
+	L_nu_syn1 = lambda x: jnu_syn_(10**x, A_syn1, p_index)*facB**((p_index+1)/4)*facn
+
+	redshift = lLp0[0][0]
+	dL = DZ(redshift)*(1+redshift)
+	print('Syn Flux: {} [erg s^-1 cm^-2 Hz^-1]'.format((1+redshift)*L_nu_syn0(np.log10(1.4e9*(1+redshift)))/dL**2/4/np.pi))
+
+	lnu = 10**np.linspace(np.log10(50),np.log10(1400),100)
+	lJnu_syn0 = [Jnu_cosmic(zend,L=L_nu_syn0,nu=x,n_a=n_a_CDM,mode=tmode) for x in lnu]
+	lJnu_syn1 = [Jnu_cosmic(zend,L=L_nu_syn1,nu=x,n_a=n_a_WDM,mode=tmode) for x in lnu]
+	plt.figure()
+	plt.plot(lnu, Tnu(lnu,np.array(lJnu_syn1)),label='Structure formation, '+lmodel[1])
+	plt.plot(lnu, Tnu(lnu,np.array(lJnu_syn0)),'--',label='Structure formation, '+lmodel[0])
+	plt.plot(lnu, 1e3*Tnu_sky(lnu),':',label='ARCADE 2')
+	plt.xlabel(r'$\nu_{\mathrm{obs}}\ [\mathrm{MHz}]$')
+	plt.ylabel(r'$\langle\delta T_{\mathrm{syn}}\rangle\ [\mathrm{mK}]$')
+	plt.legend()
+	plt.xlim(50,1400)
+	#plt.title(r'Synchrotron: $\beta_{B}='+str(facB)+r'$, $\beta_{n}='+str(facn*1e5)+r'\times 10^{-5}$, $p='+str(p_index)+'$',size=14)
+	plt.xscale('log')
+	if mode==0:
+		plt.yscale('log')
+	plt.tight_layout()
+	if mode==0:
+		plt.savefig(rep0+'logTnu_syn.pdf')
+	else:
+		plt.savefig(rep0+'Tnu_syn.pdf')
+	print('Tnu_syn at 310 MHz: {} mK (CDM)'.format(Tnu(310,Jnu_cosmic(zend,L=L_nu_syn0,nu=310,n_a=n_a_CDM,mode=tmode))))
+
+
+	lp = np.linspace(2.0,3.0,21)
+	lT_syn0 = np.array([Tnu(310,Jnu_cosmic(zend,L=lambda x: jnu_syn_(10**x, 10**Lp0(y), y),nu=310,n_a=n_a_CDM,mode=tmode)) for y in lp])
+	lT_syn1 = np.array([Tnu(310,Jnu_cosmic(zend,L=lambda x: jnu_syn_(10**x, 10**Lp1(y), y),nu=310,n_a=n_a_WDM,mode=tmode)) for y in lp])
+	plt.figure()
+	plt.plot(lp,1e3*Tnu_sky(310)/lT_syn1,label=lmodel[1])
+	plt.plot(lp,1e3*Tnu_sky(310)/lT_syn0,'--',label=lmodel[0])
+	plt.legend()
+	plt.xlim(2,3)
+	plt.xlabel(r'$p=2\alpha-3$')
+	plt.ylabel(r'$\beta_{B,-4}^{(p+1)/4}\beta_{n} \cdot T_{\mathrm{sky}}/\langle\delta T_{\mathrm{syn}}\rangle(310\ \mathrm{MHz})$')
+	if mode==0:
+		plt.yscale('log')
+	plt.tight_layout()
+	if mode==0:
+		plt.savefig(rep0+'logRat_syn.pdf')
+	else:
+		plt.savefig(rep0+'Rat_syn.pdf')
+	p0 = 2.198
+	print('Ratio (CDM): {}'.format(1e3*Tnu_sky(310)/Tnu(310,Jnu_cosmic(zend,L=lambda x: jnu_syn_(10**x, 10**Lp0(p0), p0),nu=310,n_a=n_a_CDM,mode=tmode))))
+	print('Ratio (WDM): {}'.format(1e3*Tnu_sky(310)/Tnu(310,Jnu_cosmic(zend,L=lambda x: jnu_syn_(10**x, 10**Lp1(p0), p0),nu=310,n_a=n_a_WDM,mode=tmode))))
+	"""
 
 	"""
 	plt.figure()
