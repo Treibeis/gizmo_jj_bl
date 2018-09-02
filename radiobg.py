@@ -2,7 +2,11 @@ from radio import *
 d_delta = lambda z: 1.686*(1-0.01*(1+z)/20)
 h = 0.6774
 
-Mmax = 10
+Mmax = 12
+Mref = 7e9
+NUREF = 1e11
+BETA_l = 5/3
+BETA_t = 0.0#1-5/3
 
 hmf000 = hmf.MassFunction()
 hmf000.update(n=0.966, sigma_8=0.829,cosmo_params={'Om0':0.315,'H0':67.74},Mmin=3,Mmax=9)
@@ -13,31 +17,56 @@ nm = interp1d(lm,ln)
 Nps_ref = (10**nm(-2*np.log10((1+6)/10)+6)-10**nm(np.log10(2.5*((1+6)/10)**-1.5)+7))/(UL*1e3/h)**3
 Nion = 3e-21*2.6e-13/(SPEEDOFLIGHT*1e-39*Nps_ref)
 
-def Lnu_minih(z):
-	return 4*np.pi*1e-39*Nion*rhom(1/(1+z))/(PROTON*mmw())
-
-def tau_M(t1, t2, M1, M2):
-	alpha = np.log(t1/t2)/np.log(M1/M2)
-	def func(m):
-		return t1*(m/M1)**alpha
-		#return 100e6
-	return func
+def extinction(z, m, nu, delta = 200):
+	T = Tvir(m, z)
+	M = m*UM/1e10
+	R = (M/(rhom(1/(1+z))*delta)*3/4/np.pi)**(1/3)
+	od = 4*CHARGE**6/(3*ELECTRON*SPEEDOFLIGHT*BOL) *(2*np.pi/(3*BOL*ELECTRON))**0.5 *T**-1.5 * (delta*rhom(1/(1+z))/(PROTON*mmw()))**2 * (nu*1e6)**-2 * R
+	return od
 
 def tau_mini(z):
 	return 1/(2.6e-13*rhom(1/(1+z))/(PROTON*mmw()))/YR
 
-def Lnu_M(L, L_ref, M, M_ref, z, lognu_ref = 11):
-	alpha = np.log(L(lognu_ref)/L_ref)/np.log(M/M_ref)
-	#print(alpha)
-	def func(m, nu):
-		return L(np.log10(nu*1e6))*(m/M)**alpha * np.exp(-HBAR*2*np.pi*nu*1e6/BOL/Tvir(m, z))
-	return func
-
 Mup = lambda z: 2.5e7*((1+z)/10)**-1.5
 Mdown = lambda z: 1e6*((1+z)/10)**-2
+Mmini = lambda z: (Mup(z)+Mdown(z))/2
 
-def Lnu_M_linear(m, z):
-	return Lnu_minih(z) * m*2/(Mup(z)+Mdown(z))
+def Nion_m(m):
+	return Nion*m/Mmini(6)
+
+def tau_M(z, Mref = Mref, tref = 200e6, Mbd = 1e10, beta = BETA_t):
+	alpha = np.log(tref/tau_mini(z))/np.log(Mref/Mup(z))
+	def func(m):
+		if m<=Mup(z):
+			return tau_mini(z)
+		elif m<=Mbd:
+			return tref*(m/Mref)**alpha
+		else:
+			return tref*(Mbd/Mref)**alpha *(m/Mbd)**beta
+		#return 100e6
+	return func
+
+def Lnu_minih(m, z, Tmini = 1e3):
+	return Nion_m(m)*rhom(1/(1+z))/(PROTON*mmw()) * (Tmini/1e3)**-0.5 * 2**5*np.pi*CHARGE**6/3/ELECTRON/SPEEDOFLIGHT**3 * (2*np.pi/3/BOL/ELECTRON)**0.5 
+
+def Lnu_M(L, z, Mref = Mref, Mbd = 1e10, lognu_ref = np.log10(NUREF), Tmini = 1e3, beta = BETA_l, delta=200):
+	mup = Mup(z)
+	alpha = np.log(L(lognu_ref)/Lnu_minih(mup,z))/np.log(Mref/mup)
+	#print(alpha)
+	def func(m, nu):
+		if m<=mup:
+			return Lnu_minih(m,z) * np.exp(-HBAR*2*np.pi*nu*1e6/BOL/max(Tmini,Tvir(m, z)))
+		elif m<=Mbd:
+			return L(np.log10(nu*1e6))*(m/Mref)**alpha * np.exp(-HBAR*2*np.pi*nu*1e6/BOL/Tvir(m, z)) #* np.exp(-extinction(z, m, nu))
+		else:
+			R = (m/(rhom(1/(1+z))*delta)*3/4/np.pi)**(1/3)
+			Rref = (Mref/(rhom(1/(1+z))*delta)*3/4/np.pi)**(1/3)
+			nu_bd = 1e3 * (R/Rref)**0.5
+			if nu<nu_bd:
+				return L(np.log10(nu_bd*1e6))*(Mbd/Mref)**alpha * (m/Mbd)**beta * (nu/nu_bd)**2
+			else:
+				return L(np.log10(nu*1e6))*(Mbd/Mref)**alpha * (m/Mbd)**beta * np.exp(-HBAR*2*np.pi*nu*1e6/BOL/Tvir(m, z))
+	return func
 
 from scipy.interpolate import interp2d
 
@@ -67,7 +96,7 @@ def dndm_z(z1=0, z0=31, mode=0, nbin=100, Mmax=10, load=0):
 dndm0 = dndm_z(mode=0,load=1)
 dndm1 = dndm_z(mode=1,load=1)
 
-def Jnu_final(z1, nu, z0 = 30, L = lambda x:1e30, Mref=7e9, dndm=dndm0, zstep = 1.0, h=0.6774):
+def Jnu_final(z1, nu, z0 = 30, L = lambda x:1e30, Mref=Mref, dndm=dndm0, zstep = 1.0, h=0.6774):
 	start = time.time()
 	nzb = int(abs(z0-z1)/zstep)+1
 	unit = YR*SPEEDOFLIGHT /(UL*1e3/h)**3/4/np.pi
@@ -76,8 +105,8 @@ def Jnu_final(z1, nu, z0 = 30, L = lambda x:1e30, Mref=7e9, dndm=dndm0, zstep = 
 	for z in lz:
 		mup = Mup(z)
 		mdown = Mdown(z)
-		lnu_m = Lnu_M(L, Lnu_minih(z), Mref, (mup+mdown)/2, z)
-		tau = tau_M(200e6, tau_mini(z), Mref, (mup+mdown)/2)
+		lnu_m = Lnu_M(L, z, Mref)#Lnu_M(L, Lnu_minih(z), Mref, (mup+mdown)/2, z)
+		tau = tau_M(z, Mref)#tau_M(200e6, tau_mini(z), Mref, (mup+mdown)/2)
 		def dndm_(z, m):
 			return dndm(m, z)
 		def integrand(m):
@@ -101,6 +130,39 @@ if __name__ == "__main__":
 
 	lL_nu1 = retxt(rep0+'Lnu_wdm.txt',2,0,0)
 	L_nu1 = interp1d(np.log10(lL_nu1[0]),meanL()*np.array(lL_nu1[1]))
+
+	z_eg = 10.0
+	lnu_m0 = Lnu_M(L_nu0, z_eg, 1e10)
+	lnu_m1 = Lnu_M(L_nu1, z_eg, 1e10)
+	lm = 10**np.linspace(6,12, 100)
+	lL0 = [lnu_m0(x, NUREF/1e6) for x in lm]
+	lL1 = [lnu_m1(x, NUREF/1e6) for x in lm]
+	plt.figure()
+	plt.plot(lm, lL1, label=str(NUREF/1e9) +' GHz, '+lmodel[0])
+	plt.plot(lm, lL0, label=str(NUREF/1e9) +' GHz, '+lmodel[1],ls='--')
+	plt.plot([Mdown(z_eg),Mup(z_eg)], [Lnu_minih(Mdown(z_eg), z_eg),Lnu_minih(Mup(z_eg), z_eg)],marker='*',label='Minihalo',ls=':')
+	plt.plot([Mref],[lnu_m1(Mref, NUREF/1e6)],'^',label='This work, '+lmodel[0])
+	plt.plot([Mref],[lnu_m0(Mref, NUREF/1e6)],'o',label='This work, '+lmodel[1])
+	plt.xscale('log')
+	plt.yscale('log')
+	plt.xlabel(r'$M\ [\odot]$')
+	plt.ylabel(r'$L_{\nu}\ [\mathrm{erg\ s^{-1}\ Hz^{-1}}]$')
+	plt.legend()
+	plt.tight_layout()
+	plt.savefig(rep0+'Lnu_M.pdf')
+	#plt.show()
+
+	lt_m = tau_M(z_eg)
+	ltrec = [lt_m(x)/1e6 for x in lm]
+	plt.figure()
+	plt.plot(lm, ltrec)
+	plt.xscale('log')
+	plt.yscale('log')
+	plt.xlabel(r'$M\ [\odot]$')
+	plt.ylabel(r'$t_{\mathrm{rec}}\ [\mathrm{Myr}]$')
+	plt.tight_layout()
+	plt.savefig(rep0+'trec_M.pdf')
+	#plt.show()
 
 	if load==0:
 		hmf00 = hmf.MassFunction()
@@ -215,7 +277,7 @@ if __name__ == "__main__":
 	ax1 = fig.add_subplot(111)
 	ax1.plot(lnu, Tnu(lnu,np.array(lJnu1)), label=r'Structure formation, '+lmodel[1],lw=1)
 	ax1.plot(lnu, Tnu(lnu,np.array(lJnu0)), label=r'Structure formation, '+lmodel[0],ls='--',lw=1)
-	ax1.plot(lnu, Tnu(lnu,JHII_z(6)),'-.',label=r'Minihalo $\mathrm{H_{II}}$ regions',lw=1)
+	ax1.plot(lnu, Tnu(lnu,JHII_z(6)),'-.',label=r'Minihalo',lw=1)
 	ax1.plot(lnu[lnu>0], Tnu(lnu[lnu>0],10**J21_z(1420/lnu[lnu>0]-1)), ls=':',color='r', label=r'21 cm emission',lw=1)
 	lTnu_IGM = [Tnu(x,Jnu_bg(x)) for x in lnu]
 	ax1.plot(lnu, lTnu_IGM, ls='-.',lw=2,color='g',label=r'ionized diffuse IGM')
@@ -244,7 +306,7 @@ if __name__ == "__main__":
 	ax1 = fig.add_subplot(111)
 	ax1.plot(lnu_/1e3, Tnu(lnu_,np.array(lJnu1_)), label=r'Structure formation, '+lmodel[1],lw=1)
 	ax1.plot(lnu_/1e3, Tnu(lnu_,np.array(lJnu0_)), label=r'Structure formation, '+lmodel[0],ls='--',lw=1)
-	ax1.plot(lnu_/1e3, Tnu(lnu_,JHII_z(6)),'-.',label=r'Minihalo $\mathrm{H_{II}}$ regions',lw=1)
+	ax1.plot(lnu_/1e3, Tnu(lnu_,JHII_z(6)),'-.',label=r'Minihalo',lw=1)
 	ax1.plot(lnu_/1e3, [Tnu(x,Jnu_bg(x)) for x in lnu_], ls='-.',lw=2,color='g',label=r'ionized diffuse IGM')
 	ax1.plot(lnu_/1e3,Tnu_SKA(lnu_),'k--',label=r'SKA', lw=2)
 	ax1.fill_between(lnu_/1e3,1e3*Tnu_sky_ff(lnu_,-1),1e3*Tnu_sky_ff(lnu_,1),facecolor='gray',label=r'$T_{\mathrm{ff}}^{\mathrm{G}}$',alpha=0.5)
