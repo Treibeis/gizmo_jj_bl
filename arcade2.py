@@ -16,7 +16,7 @@ yerr = np.array([C[i][i]**0.5 for i in range(len(y))])
 
 para_default = [2.725,24.1e3,0.0,2.6]
 
-def fit(mode, x=x[select], y=y[select], C=C[select][:,select], beta = -2.0, ref = 0.31, epochs = 50000, alpha = 1,para0=para_default,switch=True,nbatch=10,jp0=2000,fac=2):
+def fit(mode, x=x[select], y=y[select], C=C[select][:,select], beta = -2.0, ref = 0.31, epochs = 50000, alpha = 1,para0=para_default,switch=True,nbatch=10,jp0=2000,fac=1):
 	x_dim, y_dim = x.shape[0], y.shape[0]
 	assert x_dim == y_dim
 	y_tf = tf.placeholder(dtype=tf.float32)#, shape=[y_dim])
@@ -31,7 +31,9 @@ def fit(mode, x=x[select], y=y[select], C=C[select][:,select], beta = -2.0, ref 
 	ini1 = tf.constant_initializer(para0[1],dtype=tf.float32)
 	ini2 = tf.constant_initializer(para0[2],dtype=tf.float32)
 	inii = tf.constant_initializer(para0[3],dtype=tf.float32)
-
+	dof = 14-int(switch)-(1-mode)-2
+	sigma_chi = (2/dof)**0.5
+	print('dof: {}, sigma_chi: {}'.format(dof, sigma_chi))
 	with tf.variable_scope('test'+str(int(1e4*np.random.random()))) as scope:
 		#scope.__init__(reuse=tf.AUTO_REUSE)
 		T0 = tf.get_variable(name='T0'+str(switch),dtype=tf.float32,initializer=ini0,constraint=clip_to_nonnegative,shape=[])
@@ -64,7 +66,7 @@ def fit(mode, x=x[select], y=y[select], C=C[select][:,select], beta = -2.0, ref 
 				obj_val = sess.run(obj, feed_dict={x_tf:x, y_tf:y, C_tf:C})
 				dis_val = sess.run(dis, feed_dict={x_tf:x, y_tf:y, C_tf:C})
 				dis_val_ = np.dot(np.linalg.inv(C),dis_val)#sess.run(dis_, feed_dict={x_tf:x, y_tf:y, C_tf:C})
-				print('epoch {} obj = {}'.format(ep, obj_val))
+				print('epoch {} obj = {}'.format(ep, 14*obj_val))
 				if abs(obj_val-obj_val0)/obj_val<1e-6:
 					break
 				else:
@@ -77,10 +79,10 @@ def fit(mode, x=x[select], y=y[select], C=C[select][:,select], beta = -2.0, ref 
 		obj_val = sess.run(obj, feed_dict={x_tf:x, y_tf:y, C_tf:C})
 		dis_val = sess.run(dis, feed_dict={x_tf:x, y_tf:y, C_tf:C})
 		T_pre = sess.run(T, feed_dict={x_tf:x, y_tf:y, C_tf:C})
-		print('epoch {} obj = {}'.format(ep, obj_val))
+		print('epoch {} obj = {}'.format(ep, 14*obj_val))
 		#print(dis_val)
 	lobj = np.array(lobj)
-	o = lobj<fac*obj_val
+	o = lobj< (obj_val*14/dof + sigma_chi)*dof/14
 	lT0 = np.array(lT0)
 	lT1 = np.array(lT1)
 	lT2 = np.array(lT2)

@@ -48,6 +48,7 @@ lls = ['-', '--', '-.', ':']
 lls = lls*2
 lrep = ['N128L4_cdm/', 'N128L4_wdm/', 'N128L4_cdm_dvx30/']
 lmodel = ['CDM', 'WDM_3_kev', 'DVX30']
+lmodel_ = ['CDM', 'WDM_3_keV', 'DVX30']
 
 def loaddata(sn = 37, en = 50, rep = './', base = 'snapshot', ext = '.hdf5', post = 'caesar'):
 	for i in range(sn, en+1):

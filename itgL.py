@@ -7,8 +7,8 @@ if __name__ == "__main__":
 
 	ncore = 6
 	nline = 42
-	rep0 = 'halo1_jj/'
-	#rep0 = 'halo1/'
+	#rep0 = 'halo1_jj/'
+	rep0 = 'halo1/'
 	ldir = ['NL4_zoom_wdm/'+rep0, 'NL4_zoom_cdm/'+rep0]
 	#ldir = ['halo1_wdm/','halo1_cdm/']
 	Tsh = 1e4
@@ -19,8 +19,8 @@ if __name__ == "__main__":
 	else:
 		low, up = 1900, 2000
 
-	sn0 = 25
-	sn1 = 25
+	sn0 = 23#5
+	sn1 = 23#5
 
 	if tag==0:
 		out0 = []
@@ -69,10 +69,10 @@ if __name__ == "__main__":
 	#print(lH20)
 
 	plt.figure()
-	plt.plot(lu0[0][lu0[1]>0],lH20[2][lu0[1]>0],label='0-0 S(1), '+lmodel[1],marker='o')
-	plt.plot(lu1[0][lu1[1]>0],lH21[2][lu1[1]>0],label='0-0 S(1), '+lmodel[0],ls='--',marker='o')
-	plt.plot(lu0[0][lu0[1]>0],lH20[4][lu0[1]>0],label='0-0 S(3), '+lmodel[1],marker='^')
-	plt.plot(lu1[0][lu1[1]>0],lH21[4][lu1[1]>0],label='0-0 S(3), '+lmodel[0],ls='--',marker='^')
+	plt.plot(lu0[0][lu0[1]>0],lH20[2][lu0[1]>0],label='0-0 S(1), '+lmodel_[1],marker='o')
+	plt.plot(lu1[0][lu1[1]>0],lH21[2][lu1[1]>0],label='0-0 S(1), '+lmodel_[0],ls='--',marker='o')
+	plt.plot(lu0[0][lu0[1]>0],lH20[4][lu0[1]>0],label='0-0 S(3), '+lmodel_[1],marker='^')
+	plt.plot(lu1[0][lu1[1]>0],lH21[4][lu1[1]>0],label='0-0 S(3), '+lmodel_[0],ls='--',marker='^')
 	plt.xlabel(r'$z$')
 	plt.xlim(min(lu0[0][lu0[1]>0])-0.1,max(lu1[0][lu1[1]>0])+0.1)
 	plt.ylabel(r'$L_{\mathrm{H_{2}}}\ [\mathrm{erg\ s^{-1}}]$')
@@ -98,12 +98,12 @@ if __name__ == "__main__":
 	#lfs70 = [lH20[17][lu0[1]>0][i]/(DZ(lz0[i])*(1+lz0[i]))**2/4/np.pi/1e3 for i in range(len(lz0))]
 	#lfs71 = [lH21[17][lu1[1]>0][i]/(DZ(lz1[i])*(1+lz1[i]))**2/4/np.pi/1e3 for i in range(len(lz1))]
 	plt.figure()
-	plt.plot(lz0,lfs10,label='0-0 S(1), '+lmodel[1],marker='o')
-	plt.plot(lz0,lfs30,label='0-0 S(3), '+lmodel[1],marker='^')
-	plt.plot(lz0,lfs50,label='0-0 S(5), '+lmodel[1],marker='*')
-	plt.plot(lz1,lfs11,label='0-0 S(1), '+lmodel[0],ls='--',marker='o')
-	plt.plot(lz1,lfs31,label='0-0 S(3), '+lmodel[0],ls='--',marker='^')
-	plt.plot(lz1,lfs51,label='0-0 S(5), '+lmodel[0],ls='--',marker='*')
+	plt.plot(lz0,lfs10,label='0-0 S(1), '+lmodel_[1],marker='o')
+	plt.plot(lz0,lfs30,label='0-0 S(3), '+lmodel_[1],marker='^')
+	plt.plot(lz0,lfs50,label='0-0 S(5), '+lmodel_[1],marker='*')
+	plt.plot(lz1,lfs11,label='0-0 S(1), '+lmodel_[0],ls='--',marker='o')
+	plt.plot(lz1,lfs31,label='0-0 S(3), '+lmodel_[0],ls='--',marker='^')
+	plt.plot(lz1,lfs51,label='0-0 S(5), '+lmodel_[0],ls='--',marker='*')
 	#plt.plot(lz0,lfs70,label='0-0 S(13), '+lmodel[1],marker='+')
 	#plt.plot(lz1,lfs71,label='0-0 S(13), '+lmodel[0],ls='--',marker='+')
 	plt.xlabel(r'$z$')
@@ -186,8 +186,8 @@ if __name__ == "__main__":
 	lflux0 = [llu0[i]/(DZ(lz0[i])*(1+lz0[i]))**2/4/np.pi/1e3 for i in range(len(lz0))]
 	lflux1 = [llu1[i]/(DZ(lz1[i])*(1+lz1[i]))**2/4/np.pi/1e3 for i in range(len(lz1))]
 	plt.figure()
-	plt.plot(lz0,lflux0,label='diffuse+core, '+lmodel[1],marker='*')
-	plt.plot(lz1,lflux1,label='diffuse+core, '+lmodel[0],ls='--',marker='*')
+	plt.plot(lz0,lflux0,label='diffuse+core, '+lmodel_[1],marker='*')
+	plt.plot(lz1,lflux1,label='diffuse+core, '+lmodel_[0],ls='--',marker='*')
 	#plt.plot(lu0[0][lu0[3]>0],lu0[3][lu0[3]>0]*0.05*5e33/10,label='core, '+lmodel[1])
 	#plt.plot(lu1[0][lu1[3]>0],lu1[3][lu1[3]>0]*0.05*5e33/10,label='core ($\epsilon=0.05$, $M_{*}=10\ M_{\odot}$), '+lmodel[0],ls='--')
 	plt.xlabel(r'$z$')
@@ -216,19 +216,19 @@ if __name__ == "__main__":
 		lvir1 = np.array([Lvir(lMvir1[i],ltot1[0][i]) for i in range(ltot1.shape[1])])
 
 	plt.figure()
-	plt.plot(out0[0][out0[1]>0],out0[1][out0[1]>0],label=r'$L_{\mathrm{ff}}$, '+lmodel[1],marker='^')
-	plt.plot(out1[0][out1[1]>0],out1[1][out1[1]>0],label=r'$L_{\mathrm{ff}}$, '+lmodel[0],ls='--',marker='^')
-	plt.plot(lu0[0][lu0[1]>0],lu0[1][lu0[1]>0],label=r'$L_{\mathrm{H_{2}}}^{\mathrm{D}}$, '+lmodel[1],marker='o')
-	plt.plot(lu1[0][lu1[1]>0],lu1[1][lu1[1]>0],label=r'$L_{\mathrm{H_{2}}}^{\mathrm{D}}$, '+lmodel[0],ls='--',marker='o')
-	plt.plot(lu0[0][lu0[3]>0],luc0[lu0[3]>0]*0.1*5e33/10,label=r'$L_{\mathrm{H_{2}}}^{\mathrm{C}}$, '+lmodel[1],marker='.')
-	plt.plot(lu1[0][lu1[3]>0],luc1[lu1[3]>0]*0.1*5e33/10,label=r'$L_{\mathrm{H_{2}}}^{\mathrm{C}}$, '+lmodel[0],ls='--',marker='.')# ($\epsilon=0.05$, $M_{*}=10\ M_{\odot}$)
+	plt.plot(out0[0][out0[1]>0],out0[1][out0[1]>0],label=r'$L_{\mathrm{ff}}$, '+lmodel_[1],marker='^')
+	plt.plot(out1[0][out1[1]>0],out1[1][out1[1]>0],label=r'$L_{\mathrm{ff}}$, '+lmodel_[0],ls='--',marker='^')
+	plt.plot(lu0[0][lu0[1]>0],lu0[1][lu0[1]>0],label=r'$L_{\mathrm{H_{2}}}^{\mathrm{D}}$, '+lmodel_[1],marker='o')
+	plt.plot(lu1[0][lu1[1]>0],lu1[1][lu1[1]>0],label=r'$L_{\mathrm{H_{2}}}^{\mathrm{D}}$, '+lmodel_[0],ls='--',marker='o')
+	plt.plot(lu0[0][lu0[3]>0],luc0[lu0[3]>0]*0.1*5e33/10,label=r'$L_{\mathrm{H_{2}}}^{\mathrm{C}}$, '+lmodel_[1],marker='.')
+	plt.plot(lu1[0][lu1[3]>0],luc1[lu1[3]>0]*0.1*5e33/10,label=r'$L_{\mathrm{H_{2}}}^{\mathrm{C}}$, '+lmodel_[0],ls='--',marker='.')# ($\epsilon=0.05$, $M_{*}=10\ M_{\odot}$)
 	if tag!=0:
-		plt.plot(ltot0[0][ltot0[1]>0],ltot0[1][ltot0[1]>0],label=r'$L_{\mathrm{tot}}$, '+lmodel[1],marker='*')#,lw=1)
-		plt.plot(ltot1[0][ltot1[1]>0],ltot1[1][ltot1[1]>0],label=r'$L_{\mathrm{tot}}$, '+lmodel[0],marker='*',ls='--')#,lw=1)
-		plt.plot(ltot0[0][ltot0[2]>0],lvir0[ltot0[2]>0],label=r'$L_{\mathrm{vir}}$, '+lmodel[1],marker='x',lw=1)
-		plt.plot(ltot1[0][ltot1[2]>0],lvir1[ltot1[2]>0],label=r'$L_{\mathrm{vir}}$, '+lmodel[0],marker='x',ls='--',lw=1)
-		plt.plot(ltot0[0][ltot0[2]>0],3.2e4*lMvir0[ltot0[2]>0]*2e33,label=r'$L_{\mathrm{Edd}}$, '+lmodel[1],lw=3)
-		plt.plot(ltot1[0][ltot1[2]>0],3.2e4*lMvir1[ltot1[2]>0]*2e33,label=r'$L_{\mathrm{Edd}}$, '+lmodel[0],ls='--',lw=3)
+		plt.plot(ltot0[0][ltot0[1]>0],ltot0[1][ltot0[1]>0],label=r'$L_{\mathrm{tot}}$, '+lmodel_[1],marker='*')#,lw=1)
+		plt.plot(ltot1[0][ltot1[1]>0],ltot1[1][ltot1[1]>0],label=r'$L_{\mathrm{tot}}$, '+lmodel_[0],marker='*',ls='--')#,lw=1)
+		plt.plot(ltot0[0][ltot0[2]>0],lvir0[ltot0[2]>0],label=r'$L_{\mathrm{vir}}$, '+lmodel_[1],marker='x',lw=1)
+		plt.plot(ltot1[0][ltot1[2]>0],lvir1[ltot1[2]>0],label=r'$L_{\mathrm{vir}}$, '+lmodel_[0],marker='x',ls='--',lw=1)
+		plt.plot(ltot0[0][ltot0[2]>0],3.2e4*lMvir0[ltot0[2]>0]*2e33,label=r'$L_{\mathrm{Edd}}$, '+lmodel_[1],lw=3)
+		plt.plot(ltot1[0][ltot1[2]>0],3.2e4*lMvir1[ltot1[2]>0]*2e33,label=r'$L_{\mathrm{Edd}}$, '+lmodel_[0],ls='--',lw=3)
 	plt.xlabel(r'$z$')
 	#plt.xlim(min(lu0[0][lu0[1]>0])-0.1,max(lu1[0][lu1[1]>0])+0.1)
 	plt.xlim(min(lu0[0][lu0[1]>0])-0.1,30)
@@ -244,8 +244,8 @@ if __name__ == "__main__":
 		plt.savefig(rep0+'logLtot_z_'+str(bins)+'.pdf')
 
 	plt.figure()
-	plt.plot(lu0[0][lu0[2]>0],lu0[2][lu0[2]>0],label=lmodel[1],marker='^')
-	plt.plot(lu1[0][lu1[2]>0],lu1[2][lu1[2]>0],label=lmodel[0],ls='--',marker='^')
+	plt.plot(lu0[0][lu0[2]>0],lu0[2][lu0[2]>0],label=lmodel_[1],marker='^')
+	plt.plot(lu1[0][lu1[2]>0],lu1[2][lu1[2]>0],label=lmodel_[0],ls='--',marker='^')
 	plt.xlabel(r'$z$')
 	plt.xlim(min(lu0[0][lu0[2]>0])-0.1,max(lu1[0][lu1[2]>0])+0.1)
 	plt.ylabel(r'$L_{\mathrm{HD}}\ [\mathrm{erg\ s^{-1}}]$')
@@ -260,8 +260,8 @@ if __name__ == "__main__":
 		plt.savefig(rep0+'logLHD_z_'+str(bins)+'.pdf')
 
 	plt.figure()
-	plt.plot(lu0[0][lu0[3]>0],lu0[3][lu0[3]>0],label=lmodel[1],marker='o')
-	plt.plot(lu1[0][lu1[3]>0],lu1[3][lu1[3]>0],label=lmodel[0],ls='--',marker='o')
+	plt.plot(lu0[0][lu0[3]>0],lu0[3][lu0[3]>0],label=lmodel_[1],marker='o')
+	plt.plot(lu1[0][lu1[3]>0],lu1[3][lu1[3]>0],label=lmodel_[0],ls='--',marker='o')
 	plt.xlabel(r'$z$')
 	plt.ylabel(r'$M_{\mathrm{sink}}\ [M_{\odot}]$')
 	if sca!=0:
@@ -288,19 +288,19 @@ if __name__ == "__main__":
 	print('epsilon_ff: {} [erg s^-1]'.format(epsilon_ff))
 
 	plt.figure()
-	plt.plot(out0[0][out0[1]>0],out0[1][out0[1]>0],label=lmodel[1],marker='^')
-	plt.plot(out1[0][out1[1]>0],out1[1][out1[1]>0],label=lmodel[0],ls='--',marker='^')
+	plt.plot(out0[0][out0[1]>0],out0[1][out0[1]>0],label=lmodel_[1],marker='^')
+	plt.plot(out1[0][out1[1]>0],out1[1][out1[1]>0],label=lmodel_[0],ls='--',marker='^')
 	if sfdbk!=0:
-		plt.plot(lz0, lHII0[lu0[3]>0],label=r'Unresolved, '+lmodel[1],marker='o')
-		plt.plot(lz1, lHII1[lu1[3]>0],label=r'Unresolved, '+lmodel[0],ls='--',marker='o')
+		plt.plot(lz0, lHII0[lu0[3]>0],label=r'Unresolved, '+lmodel_[1],marker='o')
+		plt.plot(lz1, lHII1[lu1[3]>0],label=r'Unresolved, '+lmodel_[0],ls='--',marker='o')
 	else:
-		plt.plot(lz0, lHII0[lu0[3]>0],label=r'Unresolved: radiative, '+lmodel[1],marker='o')
-		plt.plot(lz1, lHII1[lu1[3]>0],label=r'Unresolved: radiative, '+lmodel[0],ls='--',marker='o')
+		plt.plot(lz0, lHII0[lu0[3]>0],label=r'Unresolved: radiative, '+lmodel_[1],marker='o')
+		plt.plot(lz1, lHII1[lu1[3]>0],label=r'Unresolved: radiative, '+lmodel_[0],ls='--',marker='o')
 	if sfdbk==0:
 		lHII0_ = epsilon_ff_*lu0[3]*UM/(1e10*mmw()*100*PROTON)
 		lHII1_ = epsilon_ff_*lu1[3]*UM/(1e10*mmw()*100*PROTON)
-		plt.plot(lz0, lHII0_[lu0[3]>0],label=r'Unresolved: collisional, '+lmodel[1],lw=1,marker=u'$\u2193$')#r'$\downarrow$')
-		plt.plot(lz1, lHII1_[lu1[3]>0],label=r'Unresolved: collisional, '+lmodel[0],lw=1,ls='--',marker=u'$\u2193$')#'$\downarrow$')
+		plt.plot(lz0, lHII0_[lu0[3]>0],label=r'Unresolved: collisional, '+lmodel_[1],lw=1,marker=u'$\u2193$')#r'$\downarrow$')
+		plt.plot(lz1, lHII1_[lu1[3]>0],label=r'Unresolved: collisional, '+lmodel_[0],lw=1,ls='--',marker=u'$\u2193$')#'$\downarrow$')
 	plt.xlabel(r'$z$')
 	plt.ylabel(r'$L_{\mathrm{ff}}\ [\mathrm{erg\ s^{-1}}]$')
 	if sca!=0:

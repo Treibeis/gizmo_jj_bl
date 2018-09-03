@@ -77,13 +77,13 @@ def Tnu_sky(nu):
 	return 2.725 + 24.1*(nu/310)**-2.599
 
 def Tnu_sky_(nu):
-	return 2.7252764+22.065672*(nu/310)**-2.6418872+1.217*(nu/310)**-2
+	return 2.725325+21.745393*(nu/310)**-2.641696+1.180*(nu/310)**-2
 
 def Tnu_sky_ff(nu, ru):
-	return (1.217+1.115*ru)*(nu/310)**-2
+	return (1.180+0.952*ru)*(nu/310)**-2
 
 def Tnu_sky_syn(nu):
-	return 21.96*(nu/310)**-2.643
+	return 21.75*(nu/310)**-2.643
 
 Ae = Tnu_sky(100)*5*10**3
 
