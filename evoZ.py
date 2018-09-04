@@ -2,7 +2,7 @@ from metalicity import *
 
 if __name__ == "__main__":
 	tag = 1
-	sca = 0
+	sca = 1
 	#nline = 42
 	#ncore = 6
 	rep0 = 'halo1_jj/'
@@ -32,12 +32,12 @@ if __name__ == "__main__":
 		out1 = np.array(retxt(rep0+'metalicity'+'_'+lmodel[0]+'.txt', 6, 0, 0))
 
 	plt.figure()
-	plt.plot(out0[2][out0[0]>0], out0[0][out0[0]>0], label='Total, '+lmodel_[1],lw=2)#,marker='^')
-	plt.plot(out1[2][out1[0]>0], out1[0][out1[0]>0], label='Total, '+lmodel_[0],ls='--',lw=2)#,marker='^')
 	plt.plot(out0[2][out0[4]>0], out0[4][out0[4]>0], label='PopII, '+lmodel_[1],marker='^',lw=1)
 	plt.plot(out1[2][out1[4]>0], out1[4][out1[4]>0], label='PopII, '+lmodel_[0],ls='--',marker='^',lw=1)
 	plt.plot(out0[2][out0[5]>0], out0[5][out0[5]>0], label='PopIII, '+lmodel_[1],marker='o',lw=1)
 	plt.plot(out1[2][out1[5]>0], out1[5][out1[5]>0], label='PopIII, '+lmodel_[0],ls='--',marker='o',lw=1)
+	plt.plot(out0[2][out0[0]>0], out0[0][out0[0]>0], label='Total, '+lmodel_[1],lw=2)#,marker='^')
+	plt.plot(out1[2][out1[0]>0], out1[0][out1[0]>0], label='Total, '+lmodel_[0],ls='--',lw=2)#,marker='^')
 	plt.xlabel(r'$z$')
 	plt.ylabel(r'$\langle Z\rangle\ [Z_{\odot}]$')
 	plt.legend()
