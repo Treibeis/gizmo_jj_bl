@@ -2,7 +2,7 @@ from metalicity import *
 
 if __name__ == "__main__":
 	tag = 1
-	sca = 1
+	sca = 0
 	#nline = 42
 	#ncore = 6
 	rep0 = 'halo1_jj/'
@@ -50,12 +50,12 @@ if __name__ == "__main__":
 		plt.savefig(rep0+'Zbar_z.pdf')	
 
 	plt.figure()
-	plt.plot(out0[2][out0[1]>0], out0[1][out0[1]>0], label='Volume, '+lmodel_[1],marker='^')
-	plt.plot(out1[2][out1[1]>0], out1[1][out1[1]>0], label='Volume, '+lmodel_[0],ls='--',marker='^')
-	plt.plot(out0[2][out0[3]>0], out0[3][out0[3]>0], label='Mass, '+lmodel_[1],marker='o')
-	plt.plot(out1[2][out1[3]>0], out1[3][out1[3]>0], label='Mass, '+lmodel_[0],ls='--',marker='o')
+	plt.plot(out0[2][out0[1]>0], out0[1][out0[1]>0], label='PopII, '+lmodel_[1],marker='^')
+	plt.plot(out1[2][out1[1]>0], out1[1][out1[1]>0], label='PopII, '+lmodel_[0],ls='--',marker='^')
+	plt.plot(out0[2][out0[3]>0], out0[3][out0[3]>0], label='PopIII, '+lmodel_[1],marker='o')
+	plt.plot(out1[2][out1[3]>0], out1[3][out1[3]>0], label='PopIII, '+lmodel_[0],ls='--',marker='o')
 	plt.xlabel(r'$z$')
-	plt.ylabel(r'$f_{\mathrm{PopII}}$')
+	plt.ylabel(r'$\mathcal{F}_{V}(Z> 10^{-4}Z_{\odot})$')
 	plt.legend()
 	if sca==0:
 		plt.yscale('log')

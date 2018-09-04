@@ -12,8 +12,9 @@ def metal(sn = 50, rep = './', indm = 0, edge = [0.01, 100.0], base = 'snapshot'
 	Zraw0 = ad[('PartType0', 'Metallicity_01')]/Zsun
 	Zraw1 = ad[('PartType0', 'Metallicity_02')]/Zsun
 	lV = (ad[('PartType0', 'Masses')]/ad[('PartType0', 'Density')]).to('Mpc**3')
-	popII = Zraw > Zth
-	lZ = Zraw[popII]
+	popII0 = Zraw0 >= Zth
+	popII1 = Zraw1 >= Zth
+	#lZ = Zraw[popII]
 	#if tag>0:
 	#	Nstar = len(ad[('PartType4', 'Metallicity_00')])
 	#	Zraw_ = (ad[('PartType4', 'Metallicity_00')]+ad[('PartType4', 'Metallicity_01')]+ad[('PartType4', 'Metallicity_02')])
@@ -43,8 +44,8 @@ def metal(sn = 50, rep = './', indm = 0, edge = [0.01, 100.0], base = 'snapshot'
 	#if tag>0:
 	#	rat = (len(lZ)+len(lZ_))/(Ngas+Nstar)
 	#else:
-	rat0 = np.array(np.sum(lV[popII])/Vz)#np.sum(lV))
-	rat1 = np.array(np.sum(ad[('PartType0', 'Masses')][popII])/np.sum(ad[('PartType0', 'Masses')]))
+	rat0 = np.array(np.sum(lV[popII0])/Vz)#np.sum(lV))
+	rat1 = np.array(np.sum(lV[popII1])/Vz)#np.array(np.sum(ad[('PartType0', 'Masses')][popII])/np.sum(ad[('PartType0', 'Masses')]))
 	Zbar = np.average(Zraw)
 	Zbar0 = np.average(Zraw0)
 	Zbar1 = np.average(Zraw1)
@@ -58,4 +59,4 @@ if __name__ == "__main__":
 	else:
 		rep0 = 'halo1_jj_wdm/'
 	out = metal(sn=sn, indm=indm, rep=rep0,mode=1)
-	print('Average Z: {}, Mass fraction: {}'.format(out[0], out[1]))
+	print('Average Z: {}, volume filling fraction: {}'.format(out[0], out[1]))
