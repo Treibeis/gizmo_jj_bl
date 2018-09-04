@@ -1,4 +1,5 @@
 from radio import *
+Vz = 4**3 * 0.3783187*0.3497985*0.399293243 /0.6774**3
 
 def metal(sn = 50, rep = './', indm = 0, edge = [0.01, 100.0], base = 'snapshot', ext = '.hdf5', Zth = 1e-4, mode=0, Zsun = 0.0134):
 	ds = yt.load(rep+base+'_'+str(sn).zfill(3)+ext)
@@ -10,7 +11,7 @@ def metal(sn = 50, rep = './', indm = 0, edge = [0.01, 100.0], base = 'snapshot'
 	Zraw = ad[('PartType0', 'Metallicity_00')]/Zsun#+ad[('PartType0', 'Metallicity_01')]+ad[('PartType0', 'Metallicity_02')])
 	Zraw0 = ad[('PartType0', 'Metallicity_01')]/Zsun
 	Zraw1 = ad[('PartType0', 'Metallicity_02')]/Zsun
-	lV = ad[('PartType0', 'Masses')]/ad[('PartType0', 'Density')]
+	lV = (ad[('PartType0', 'Masses')]/ad[('PartType0', 'Density')]).to('Mpc**3')
 	popII = Zraw > Zth
 	lZ = Zraw[popII]
 	#if tag>0:
@@ -42,7 +43,7 @@ def metal(sn = 50, rep = './', indm = 0, edge = [0.01, 100.0], base = 'snapshot'
 	#if tag>0:
 	#	rat = (len(lZ)+len(lZ_))/(Ngas+Nstar)
 	#else:
-	rat0 = np.array(np.sum(lV[popII])/np.sum(lV))
+	rat0 = np.array(np.sum(lV[popII])/Vz)#np.sum(lV))
 	rat1 = np.array(np.sum(ad[('PartType0', 'Masses')][popII])/np.sum(ad[('PartType0', 'Masses')]))
 	Zbar = np.average(Zraw)
 	Zbar0 = np.average(Zraw0)
