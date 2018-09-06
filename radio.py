@@ -206,6 +206,41 @@ H2_A = np.array([2.94e-11, 4.76e-10,2.76e-9,9.84e-9,2.64e-8,5.88e-8,4.29e-7,4.23
 3.03e-7, 2.78e-7, 2.65e-7, 2.55e-7, 2.45e-7, 2.34e-7,\
 2.53e-7, 3.47e-7, 3.98e-7, 4.21e-7, 4.19e-7, 3.96e-7, 3.54e-7, 2.98e-7, 2.34e-7, 1.68e-7, 1.05e-7, 5.3e-8])
 
+def H2_low(T):
+	WH2 = -103.0+97.59*np.log10(T)-48.05*(np.log10(T))**2+10.8*(np.log10(T))**3-0.9032*(np.log10(T))**4
+	if WH2>-35:
+		LOW = 10**WH2
+	else:
+		LOW = 0.0
+	return LOW
+
+def H2_LTE(T):
+	T3 = T/1000.0
+	RLTE = (9.5e-22*T3**3.76*np.e**(-(0.13/T3)**3)/(1.0+0.12*T3**2.1)+3.e-24*np.e**(-0.51/T3))
+	VLTE = (6.7e-19*np.e**(-5.86/T3)+1.6e-18*np.e**(-11.7/T3))
+	LTE = RLTE+VLTE
+	return LTE
+
+def H2_LTE_(T):
+	Z = np.sum(np.exp(-H2_E/T)*H2_g)
+	return np.sum(np.exp(-H2_E/T)*H2_g * H2_E21 * H2_A)/Z * 1e3*HBAR*2*np.pi*SPEEDOFLIGHT
+
+def ncr(T):
+	Z = np.sum(np.exp(-H2_E/T)*H2_g)
+	deno = np.sum(np.exp(-H2_E/T)*H2_g * H2_E21)/Z * 1e3*HBAR*2*np.pi*SPEEDOFLIGHT
+	lam = H2_low(T)
+	if lam==0.0:
+		return 1e30*np.ones(H2_E.shape[0])
+	else:
+		n0 = deno/lam
+		return n0*H2_A
+
+def LambdaH2_(T, nh2, nh):
+	Z = np.sum(np.exp(-H2_E/T)*H2_g)
+	L_lines =  nh2 * np.exp(-H2_E/T)*H2_g * H2_E21 * H2_A * 1e3*HBAR*2*np.pi*SPEEDOFLIGHT/Z /(1+ncr(T)/nh)
+	return np.sum(L_lines)
+	
+
 def H2_line_dis(T):
 	lx2 = np.exp(-H2_E/T)*H2_g
 	lf = lx2*H2_E21*H2_A
@@ -381,9 +416,12 @@ def luminosity_particle(sn, rep = './', box = [[1900]*3,[2000]*3], nsh = 1e-4, b
 			nH2 = n*lxH2[i]
 			nH0 = n*lxH0[i]
 			nHD = n*lxHD[i]*4.3e-5
-			ldlh2[i-pr0] = V*LambdaH2(T, nH2, nH0)
+			Z = np.sum(np.exp(-H2_E/T)*H2_g)
+			L_lines =  nH2 * np.exp(-H2_E/T)*H2_g * H2_E21 * H2_A * 1e3*HBAR*2*np.pi*SPEEDOFLIGHT/Z /(1+ncr(T)/nH0)*V
+			lH2 += L_lines
+			ldlh2[i-pr0] = np.sum(L_lines)#V*LambdaH2(T, nH2, nH0)
 			ldlhd[i-pr0] = V*LambdaHD(T, nHD, nH0, n)
-			lH2 += ldlh2[i-pr0]*H2_line_dis(T)
+			#lH2 += ldlh2[i-pr0]*H2_line_dis(T)
 			#profile0 = lambda x: profile0(x) + stats.norm.pdf(x, nu_loc, nu_scale)*dlh2
 			#profile1 = lambda x: profile1(x) + stats.norm.pdf(x, nu_loc, nu_scale)*dlhd
 		output.put([ldlh2, ldlhd, lnu_loc, lnu_scale, lH2])
