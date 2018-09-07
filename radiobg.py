@@ -2,11 +2,12 @@ from radio import *
 d_delta = lambda z: 1.686*(1-0.01*(1+z)/20)
 h = 0.6774
 
-Mmax = 12
+Mmax = 10
 Mref = 7e9
 NUREF = 1e11
-BETA_l = 5/3
+BETA_l = 0.0#5/3
 BETA_t = 0.0#1-5/3
+Tref = (TZ(7.22147651692)-TZ(10.2385321471))/YR
 
 hmf000 = hmf.MassFunction()
 hmf000.update(n=0.966, sigma_8=0.829,cosmo_params={'Om0':0.315,'H0':67.74},Mmin=3,Mmax=9)
@@ -34,7 +35,7 @@ Mmini = lambda z: (Mup(z)+Mdown(z))/2
 def Nion_m(m):
 	return Nion*m/Mmini(6)
 
-def tau_M(z, Mref = Mref, tref = 243e6, Mbd = 1e10, beta = BETA_t):
+def tau_M(z, Mref = Mref, tref = Tref, Mbd = 1e10, beta = BETA_t):
 	alpha = np.log(tref/tau_mini(z))/np.log(Mref/Mup(z))
 	def func(m):
 		if m<=Mup(z):
@@ -124,7 +125,7 @@ if __name__ == "__main__":
 	load = 1
 	tag = 1
 	nbin = 50
-	sn_min = 15
+	sn_min = 16
 	sn_max = 25
 	rep0 = 'halo1_jj/'
 
@@ -156,6 +157,8 @@ if __name__ == "__main__":
 
 	L_nu0 = interp1d(np.log10(lL_nu0[0]),np.array(lnu0))
 	L_nu1 = interp1d(np.log10(lL_nu1[0]),np.array(lnu1))
+
+	print(Tref, np.sum(ldt1))
 
 	plt.figure()
 	plt.plot(lL_nu1[0], lL_nu1[1], label=lmodel_[1])
@@ -281,10 +284,11 @@ if __name__ == "__main__":
 
 	if tag==0:
 		lz = np.linspace(19.9,1/(1-5e-2)-1,nbin)
+		#"""
 		lJ0 = [Jnu_final(z,L=L_nu0,nu=310,dndm=dndm0) for z in lz]
 		lJ1 = [Jnu_final(z,L=L_nu1,nu=310,dndm=dndm1) for z in lz]
 		totxt(rep0+'Jnuz.txt',[lz,lJ0,lJ1],0,0,0)
-
+		#"""
 		lnu = 10**np.linspace(np.log10(50),3,nbin)
 		lJnu0 = [Jnu_final(zend,L=L_nu0,nu=x,dndm=dndm0) for x in lnu]
 		lJnu1 = [Jnu_final(zend,L=L_nu1,nu=x,dndm=dndm1) for x in lnu]

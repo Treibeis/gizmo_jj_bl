@@ -246,6 +246,12 @@ def H2_line_dis(T):
 	lf = lx2*H2_E21*H2_A
 	return lf/np.sum(lf)
 
+def H2_line_dis_(T, nh = 1e2):
+	Z = np.sum(np.exp(-H2_E/T)*H2_g)
+	L_lines = np.exp(-H2_E/T)*H2_g * H2_E21 * H2_A * 1e3*HBAR*2*np.pi*SPEEDOFLIGHT/Z /(1+ncr(T)/nh)
+	return L_lines/np.sum(L_lines)
+	
+
 def luminosity_syn(sn, facB = 1.0, facn = 1.0, p_index = 2.5, rep = './', box = [[1900]*3,[2000]*3], Tsh = 1e4, base = 'snapshot', ext = '.hdf5', ncore = 4, X=0.76):
 	xh = 4*X/(1+3*X)
 	#mu0 = 4/(1+3*X)
