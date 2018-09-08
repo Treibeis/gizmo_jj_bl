@@ -48,10 +48,12 @@ def tau_M(z, Mref = Mref, tref = Tref, Mbd = 1e10, beta = BETA_t):
 	return func
 
 def Lnu_ff_SFR(nu, M, z, T = 1e3):
-	if M<Mup(z):
-		Te = 1e3
+	mup = Mup(z)
+	Tup = Tvir(mup,z)
+	if M<mup:
+		Te = 1e3#max(1e3,Tvir(M, z))
 	else:
-		Te = min(Tvir(M, z),2e4)
+		Te = min(Tvir(M, z)*1e3/Tup,2e4)
 	sfr = SFR_MF(M, z)
 	return sfr / (4.6e-28 * (Te/1e4)**-0.45 * (nu/1e9)**0.1)
 
@@ -66,7 +68,8 @@ def Lnu_M(L, z, Mref = Mref, Mbd = 1e10, lognu_ref = np.log10(NUREF), Tmini = 1e
 		if m<=mup:
 			return Lnu_minih(m,z) * np.exp(-HBAR*2*np.pi*nu*1e6/BOL/Tmini)
 		elif m<=Mbd:
-			return L(np.log10(nu*1e6))*(m/Mref)**alpha * np.exp(-HBAR*2*np.pi*nu*1e6/BOL/Tvir(m, z)) #* np.exp(-extinction(z, m, nu))
+			Te = max(Tmini*Tvir(m, z)/Tvir(mup,z),2e4)
+			return L(np.log10(nu*1e6))*(m/Mref)**alpha * np.exp(-HBAR*2*np.pi*nu*1e6/BOL/Te) #* np.exp(-extinction(z, m, nu))
 		else:
 			R = (m/(rhom(1/(1+z))*delta)*3/4/np.pi)**(1/3)
 			Rref = (Mref/(rhom(1/(1+z))*delta)*3/4/np.pi)**(1/3)
@@ -202,7 +205,7 @@ if __name__ == "__main__":
 	Te = 2e4
 	lnu_m0 = Lnu_M(L_nu0, z_eg, 1e10)
 	lnu_m1 = Lnu_M(L_nu1, z_eg, 1e10)
-	lm = 10**np.linspace(np.log10(Mdown(z_eg)),Mmax, 100)
+	lm = 10**np.linspace(np.log10(Mdown(z_eg)),Mmax, 1000)
 	lL0 = [lnu_m0(x, NUREF/1e6) for x in lm]
 	lL1 = [lnu_m1(x, NUREF/1e6) for x in lm]
 	lL_sfr = [Lnu_ff_SFR(NUREF, x, z_eg, Te) for x in lm]
@@ -386,7 +389,7 @@ if __name__ == "__main__":
 				lJ0[i]=lJ0[i-1]
 	ax1.plot(lz, Tnu(310,np.array(lJ1)), label=r'$\nu_{\mathrm{obs}}=310\ \mathrm{MHz}$, '+lmodel_[1],lw=1)
 	ax1.plot(lz, Tnu(310,np.array(lJ0)), '--',label=r'$\nu_{\mathrm{obs}}=310\ \mathrm{MHz}$, '+lmodel_[0],lw=1)
-	yup = np.max([60, np.max(Tnu(310,np.array(lJ0))), np.max(Tnu(310,np.array(lJ1)))])*1.05
+	yup = 9e3#np.max([60, np.max(Tnu(310,np.array(lJ0))), np.max(Tnu(310,np.array(lJ1)))])*1.05
 	ax1.plot([6,6],[1e-9,yup],lw=0.5,color='k')
 	ax1.fill_between([0,6],[1e-9,1e-9],[yup,yup],facecolor='gray',alpha=0.2)
 	ax1.set_xlim(0,20)
