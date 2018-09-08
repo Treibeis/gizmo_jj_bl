@@ -2,7 +2,7 @@ from radio import *
 d_delta = lambda z: 1.686*(1-0.01*(1+z)/20)
 h = 0.6774
 
-Mmax = 10
+Mmax = 12
 Mref = 7e9
 NUREF = 1e11
 BETA_l = 0.0#5/3
@@ -46,6 +46,14 @@ def tau_M(z, Mref = Mref, tref = Tref, Mbd = 1e10, beta = BETA_t):
 			return tref*(Mbd/Mref)**alpha *(m/Mbd)**beta
 		#return 100e6
 	return func
+
+def Lnu_ff_SFR(nu, M, z, T = 1e3):
+	if M<Mup(z):
+		Te = 1e3
+	else:
+		Te = min(Tvir(M, z),2e4)
+	sfr = SFR_MF(M, z)
+	return sfr / (4.6e-28 * (Te/1e4)**-0.45 * (nu/1e9)**0.1)
 
 def Lnu_minih(m, z, Tmini = 1e3):
 	return Nion_m(m)*rhom(1/(1+z))/(PROTON*mmw()) * Tmini**-0.5 * 2**5*np.pi*CHARGE**6/3/ELECTRON/SPEEDOFLIGHT**3 * (2*np.pi/3/BOL/ELECTRON)**0.5 
@@ -191,15 +199,18 @@ if __name__ == "__main__":
 		plt.savefig(rep0+'Lnu_ref.pdf')
 
 	z_eg = 7.5
+	Te = 2e4
 	lnu_m0 = Lnu_M(L_nu0, z_eg, 1e10)
 	lnu_m1 = Lnu_M(L_nu1, z_eg, 1e10)
 	lm = 10**np.linspace(np.log10(Mdown(z_eg)),Mmax, 100)
 	lL0 = [lnu_m0(x, NUREF/1e6) for x in lm]
 	lL1 = [lnu_m1(x, NUREF/1e6) for x in lm]
+	lL_sfr = [Lnu_ff_SFR(NUREF, x, z_eg, Te) for x in lm]
 	plt.figure()
 	plt.plot(lm, lL1, label=lmodel_[0])
 	plt.plot(lm, lL0, label=lmodel_[1],ls='--')
 	plt.plot(lm, Lnu_minih(lm, z=z_eg),label=r'$L_{\nu}^{\mathrm{mini}}$',ls=':')
+	plt.plot(lm, lL_sfr,ls='-.',label=r'$L_{\nu}^{\mathrm{SFR}}$')#, $T_{e}='+str(Te)+'\ \mathrm{K}$')
 	#plt.plot([Mdown(z_eg),Mup(z_eg)], [Lnu_minih(Mdown(z_eg), z_eg),Lnu_minih(Mup(z_eg), z_eg)],marker='*',label='Minihalo',ls=':')
 	plt.scatter([Mref],[lnu_m1(Mref, NUREF/1e6)],marker='^',label=r'$L_{\nu}^{\mathrm{ref}}$, '+lmodel_[0],alpha=0.5)
 	plt.scatter([Mref],[lnu_m0(Mref, NUREF/1e6)],marker='o',label=r'$L_{\nu}^{\mathrm{ref}}$, '+lmodel_[1],alpha=0.5)
