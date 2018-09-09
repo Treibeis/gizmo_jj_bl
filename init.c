@@ -882,14 +882,14 @@ void init(void)
         {
             SphP[i].Primordial_Chem[0]   = 0.93;                   // HI
             SphP[i].Primordial_Chem[1]   = 2.8e-4;                    // HII
-            SphP[i].Primordial_Chem[2]   = 1e-12;//1e-13;//1e-16;//1e-11;               //H-
-            SphP[i].Primordial_Chem[3]   = 5e-7;//5e-8;//1e-11;//2e-6;                    // H2
+            SphP[i].Primordial_Chem[2]   = 1e-13;//1e-13;//1e-16;//1e-11;               //H-
+            SphP[i].Primordial_Chem[3]   = 5e-8;//5e-8;//1e-11;//2e-6;                    // H2
             SphP[i].Primordial_Chem[4]   = 2e-15;//1e-19;//1e-14;                    // H2+
             SphP[i].Primordial_Chem[5]   = 2.8e-4;//1e-10;//1e-20;                    // e-
             SphP[i].Primordial_Chem[6]   = 0.07;                   // HeI
             SphP[i].Primordial_Chem[7]   = 7.1e-21;//1e-15;                    // HeII
             SphP[i].Primordial_Chem[8]   = 0.0;//1e-15;                    // HeIII
-            SphP[i].Primordial_Chem[9]   = 4.3e-5;                 // DI
+            SphP[i].Primordial_Chem[9]   = 1.0;                 // DI
             SphP[i].Primordial_Chem[10]   = 2.3e-5;//1e-8;//1e-10;                   // DII
             SphP[i].Primordial_Chem[11]   = 4.7e-6;//1e-11;//1e-15;//1e-10;            // HD
             SphP[i].Primordial_Chem[12]   = 1.0;                   // H2 shielding factor

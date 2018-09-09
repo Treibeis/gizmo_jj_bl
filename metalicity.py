@@ -12,8 +12,9 @@ def metal(sn = 50, rep = './', indm = 0, edge = [0.01, 100.0], base = 'snapshot'
 	Zraw0 = ad[('PartType0', 'Metallicity_01')]/Zsun
 	Zraw1 = ad[('PartType0', 'Metallicity_02')]/Zsun
 	lV = (ad[('PartType0', 'Masses')]/ad[('PartType0', 'Density')]).to('Mpc**3')
-	popII0 = Zraw0 >= Zth
-	popII1 = Zraw1 >= Zth
+	popII0 = Zraw0 > Zth
+	popII1 = Zraw1 > Zth
+	popII = Zraw > Zth
 	#lZ = Zraw[popII]
 	#if tag>0:
 	#	Nstar = len(ad[('PartType4', 'Metallicity_00')])
@@ -44,12 +45,13 @@ def metal(sn = 50, rep = './', indm = 0, edge = [0.01, 100.0], base = 'snapshot'
 	#if tag>0:
 	#	rat = (len(lZ)+len(lZ_))/(Ngas+Nstar)
 	#else:
+	rat = np.array(np.sum(lV[popII])/Vz)
 	rat0 = np.array(np.sum(lV[popII0])/Vz)#np.sum(lV))
 	rat1 = np.array(np.sum(lV[popII1])/Vz)#np.array(np.sum(ad[('PartType0', 'Masses')][popII])/np.sum(ad[('PartType0', 'Masses')]))
 	Zbar = np.average(Zraw)
 	Zbar0 = np.average(Zraw0)
 	Zbar1 = np.average(Zraw1)
-	return np.array([Zbar, rat0, z, rat1, Zbar0, Zbar1])
+	return np.array([z, Zbar, Zbar0, Zbar1, rat, rat0, rat1])
 
 if __name__ == "__main__":
 	indm = int(sys.argv[2])
