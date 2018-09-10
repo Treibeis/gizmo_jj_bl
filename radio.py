@@ -45,6 +45,10 @@ def SFR_MF(M, z):
 	sfr0 = 3e-3*((1+z)/11)**2.5
 	return sfr0*M/1e8 * (M<=1e10) + sfr0*1e2*(M/1e10)**(5/3) * (M>1e10)*(M<=1e12) + sfr0*1e2*(1e2)**(5/3) * (M>1e12)
 
+def SFE_MF(M, z):
+	sfe0 = 2e-2*11/(1+z)
+	return sfe0 * (M<=1e10) + sfe0*(M/1e10)**(2/3) * (M>1e10)*(M<=1e12) + sfe0*100**(2/3)*(M/1e12)**(-1/2) * (M>1e12)
+
 def SFR_ff(nu, Lnu, Te = 2e4):
 	return 4.6e-28 * (Te/1e4)**-0.45 * (nu/1e9)**0.1 * Lnu
 

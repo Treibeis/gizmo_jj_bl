@@ -47,6 +47,9 @@ def tau_M(z, Mref = Mref, tref = Tref, Mbd = 1e10, beta = BETA_t):
 		#return 100e6
 	return func
 
+def tau_ff_SFR(M, z):
+	return M*SFE_MF(M, z)/SFR_MF(M, z)
+
 def Lnu_ff_SFR(nu, M, z, T = 1e3):
 	mup = Mup(z)
 	Tup = Tvir(mup,z)
@@ -117,12 +120,13 @@ def Jnu_final(z1, nu, z0 = 30, L = lambda x:1e30, Mref=Mref, dndm=dndm0, zstep =
 	for z in lz:
 		mup = Mup(z)
 		mdown = Mdown(z)
-		lnu_m = Lnu_M(L, z, Mref)#Lnu_M(L, Lnu_minih(z), Mref, (mup+mdown)/2, z)
-		tau = tau_M(z, Mref)#tau_M(200e6, tau_mini(z), Mref, (mup+mdown)/2)
+		lnu_m = Lnu_M(L, z, Mref)
+		tau = tau_M(z, Mref)
 		def dndm_(z, m):
 			return dndm(m, z)
 		def integrand(m):
 			return lnu_m(10**m,nu*(1+z)) * tau(10**m) * max(0.0,-derivative(dndm_, z, 1e-2, args=(10**m,)))
+			#return Lnu_ff_SFR(nu*(1+z), 10**m, z) * tau_ff_SFR(10**m, z) * max(0.0,-derivative(dndm_, z, 1e-2, args=(10**m,)))
 		ljnu.append(quad(integrand, np.log10(mdown), Mmax, epsrel=-4)[0])
 	jnu_z = interp1d(lz, ljnu)
 	out = quad(jnu_z, z1, z0, epsrel=-4)[0]*unit*1e23
@@ -169,7 +173,7 @@ if __name__ == "__main__":
 	L_nu0 = interp1d(np.log10(lL_nu0[0]),np.array(lnu0))
 	L_nu1 = interp1d(np.log10(lL_nu1[0]),np.array(lnu1))
 
-	print(Tref, np.sum(ldt1))
+	print(Tref/1e6, np.sum(ldt1))
 
 	plt.figure()
 	plt.plot(lL_nu1[0], lL_nu1[1], label=lmodel_[1])
@@ -230,8 +234,10 @@ if __name__ == "__main__":
 
 	lt_m = tau_M(z_eg)
 	ltrec = [lt_m(x)/1e6 for x in lm]
+	lt_sfr = tau_ff_SFR(lm, z_eg)/1e6
 	plt.figure()
-	plt.plot(lm, ltrec)
+	plt.plot(lm, ltrec, label=r'This work')
+	plt.plot(lm, lt_sfr, '--',label=r'Mirocha:18')
 	plt.xscale('log')
 	#plt.yscale('log')
 	plt.xlabel(r'$M\ [\odot]$')
