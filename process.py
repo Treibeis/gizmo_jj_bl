@@ -177,14 +177,14 @@ hmf1.update(n=0.966, sigma_8=0.829,cosmo_params={'Om0':0.315,'H0':67.74},Mmin=4,
 #HMF = 'mVector_PLANCK-z8.8 .txt'
 #HMF = 'mVector_PLANCK-SMT .txt'
 #HMF0 = 'mVector_PLANCK-SMT0 .txt'
-Redf=retxt('output_25_4.txt',1,0,0)[0]
+#Redf=retxt('output_25_4.txt',1,0,0)[0]
 fac0 = 0.208671*0.3153754*0.1948407
 
 
 
 def halom(sn, rep ='./', indm = 0, anaf1 = hmf1, anaf0 = hmf0, mlow = 1e6, fac = fac0, edge = [0.0, 99.5], nbin = 15, boxs = 4.0 ,base = 'snapshot', ext = '.hdf5', post = 'caesar'):
-	#ds = yt.load(rep+base+'_'+str(sn).zfill(3)+ext)
-	z = 1/Redf[sn]-1
+	ds = yt.load(rep+base+'_'+str(sn).zfill(3)+ext)
+	z = ds['Redshift']#1/Redf[sn]-1
 	obj = caesar.load(rep+post+'_'+str(sn).zfill(3)+ext)
 	lh = obj.halos
 	#a = 1/(ds['Redshift']+1)
@@ -222,7 +222,7 @@ def halom(sn, rep ='./', indm = 0, anaf1 = hmf1, anaf0 = hmf0, mlow = 1e6, fac =
 	return lm
 
 def plothm(l = lrep, sn = 28, nbin = 15, rm = [8, 10], anaf = hmf0, boxs = 4.0):
-	z = 1/Redf[sn]-1
+	z = ds['Redshift']#1/Redf[sn]-1
 	lhm = [halom(sn, l[x], x) for x in range(3)]
 	lhis = []
 	lbs = []
