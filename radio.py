@@ -232,11 +232,11 @@ def H2_LTE(T):
 
 def H2_LTE_(T):
 	Z = np.sum(np.exp(-H2_E/T)*H2_g)
-	return np.sum(np.exp(-H2_E/T)*H2_g * H2_E21 * H2_A)/Z * 1e3*HBAR*2*np.pi*SPEEDOFLIGHT
+	return np.sum(np.exp(-H2_E/T)*H2_g * H2_E21 * H2_A)/Z * 1e4*HBAR*2*np.pi*SPEEDOFLIGHT
 
 def ncr(T):
 	Z = np.sum(np.exp(-H2_E/T)*H2_g)
-	deno = np.sum(np.exp(-H2_E/T)*H2_g * H2_E21)/Z * 1e3*HBAR*2*np.pi*SPEEDOFLIGHT
+	deno = np.sum(np.exp(-H2_E/T)*H2_g * H2_E21)/Z * 1e4*HBAR*2*np.pi*SPEEDOFLIGHT
 	lam = H2_low(T)
 	if lam==0.0:
 		return 1e30*np.ones(H2_E.shape[0])
@@ -246,7 +246,7 @@ def ncr(T):
 
 def LambdaH2_(T, nh2, nh):
 	Z = np.sum(np.exp(-H2_E/T)*H2_g)
-	L_lines =  nh2 * np.exp(-H2_E/T)*H2_g * H2_E21 * H2_A * 1e3*HBAR*2*np.pi*SPEEDOFLIGHT/Z /(1+ncr(T)/nh)
+	L_lines =  nh2 * np.exp(-H2_E/T)*H2_g * H2_E21 * H2_A * 1e4*HBAR*2*np.pi*SPEEDOFLIGHT/Z /(1+ncr(T)/nh)
 	return np.sum(L_lines)
 	
 
@@ -257,7 +257,7 @@ def H2_line_dis(T):
 
 def H2_line_dis_(T, nh = 1e2):
 	Z = np.sum(np.exp(-H2_E/T)*H2_g)
-	L_lines = np.exp(-H2_E/T)*H2_g * H2_E21 * H2_A * 1e3*HBAR*2*np.pi*SPEEDOFLIGHT/Z /(1+ncr(T)/nh)
+	L_lines = np.exp(-H2_E/T)*H2_g * H2_E21 * H2_A * 1e4*HBAR*2*np.pi*SPEEDOFLIGHT/Z /(1+ncr(T)/nh)
 	return L_lines/np.sum(L_lines)
 	
 
@@ -379,7 +379,7 @@ def luminosity_tot(sn, rep = './', box = [[1750]*3,[2250]*3], nsh = 1.0, nsh2 = 
 	print('Time taken: {} s, MV_max: {} [Msun]'.format(time.time()-start, MV))
 	return [z, out, MV, Msink]
 			
-def luminosity_particle(sn, rep = './', box = [[1900]*3,[2000]*3], nsh = 1e-4, base = 'snapshot', ext = '.hdf5', ncore = 4, X=0.76, nline=42, Tsh = 1e4, nmax = 1.0):
+def luminosity_particle(sn, rep = './', box = [[1900]*3,[2000]*3], nsh = 1e-5, base = 'snapshot', ext = '.hdf5', ncore = 4, X=0.76, nline=42, Tsh = 1e4, nmax = 1.0e4):
 	xh = 4*X/(1+3*X)
 	mu0 = 4/(1+3*X)
 	ds = yt.load(rep+base+'_'+str(sn).zfill(3)+ext)
@@ -394,7 +394,8 @@ def luminosity_particle(sn, rep = './', box = [[1900]*3,[2000]*3], nsh = 1e-4, b
 		Msink = 0.0
 	if tag_>0:
 		Msink += np.array(np.sum(ad[('PartType4','Masses')].to('Msun')))
-	shock = (ad[('PartType0','Primordial H2')]>nsh) * np.logical_or((np.array(temp(ad[('PartType0','InternalEnergy')],ad[('PartType0','Primordial HII')]))<Tsh),np.array(ad[('PartType0','Density')].to_equivalent("cm**-3", "number_density",mu=mmw(ad[('PartType0','Primordial HII')])))<nmax )
+	shock = (ad[('PartType0','Primordial H2')]>nsh) * (np.array(temp(ad[('PartType0','InternalEnergy')],ad[('PartType0','Primordial HII')]))<Tsh) * (np.array(ad[('PartType0','Density')].to_equivalent("cm**-3", "number_density",mu=mmw(ad[('PartType0','Primordial HII')])))<nmax)
+	#shock = (ad[('PartType0','Primordial H2')]>nsh) * np.logical_or((np.array(temp(ad[('PartType0','InternalEnergy')],ad[('PartType0','Primordial HII')]))<Tsh),np.array(ad[('PartType0','Density')].to_equivalent("cm**-3", "number_density",mu=mmw(ad[('PartType0','Primordial HII')])))<nmax )
 	nump = ad[('PartType0','Coordinates')][shock].shape[0]
 	lv = np.array(ad[('PartType0','Velocities')][shock].to('cm/s'))
 	ln = np.array(ad[('PartType0','Density')][shock].to_equivalent("cm**-3", "number_density",mu=mmw(ad[('PartType0','Primordial HII')][shock])))
@@ -432,10 +433,10 @@ def luminosity_particle(sn, rep = './', box = [[1900]*3,[2000]*3], nsh = 1e-4, b
 			nH0 = n*lxH0[i]
 			nHD = n*lxHD[i]*4.3e-5
 			Z = np.sum(np.exp(-H2_E/T)*H2_g)
-			L_lines =  nH2 * np.exp(-H2_E/T)*H2_g * H2_E21 * H2_A * 1e3*HBAR*2*np.pi*SPEEDOFLIGHT/Z /(1+ncr(T)/nH0)*V
+			L_lines =  np.exp(-H2_E/T)*H2_g * H2_E21 * H2_A * 1e4*HBAR*2*np.pi*SPEEDOFLIGHT/Z /(1+ncr(T)/nH0) * nH2 * V
 			lH2 += L_lines
-			ldlh2[i-pr0] = np.sum(L_lines)#V*LambdaH2(T, nH2, nH0)
-			ldlhd[i-pr0] = V*LambdaHD(T, nHD, nH0, n)
+			ldlh2[i-pr0] = V*LambdaH2(T, nH2, nH0)
+			ldlhd[i-pr0] = np.sum(L_lines) #V*LambdaHD(T, nHD, nH0, n)
 			#lH2 += ldlh2[i-pr0]*H2_line_dis(T)
 			#profile0 = lambda x: profile0(x) + stats.norm.pdf(x, nu_loc, nu_scale)*dlh2
 			#profile1 = lambda x: profile1(x) + stats.norm.pdf(x, nu_loc, nu_scale)*dlhd
@@ -717,5 +718,21 @@ def Jnu_bg(nu, z0 = 6, z1 = 0, T = 2e4, mode=1):
 
 Vbox = (1200*UL/0.6774)**3
 
+if __name__ == "__main__":
+	llw = [1]*4 + [2]*4
+	lT =np.logspace(np.log10(30), 4, 500)
+	ln = [1+i for i in range(6)]
+	lrat = [[LambdaH2(x, 1, 10**y)/LambdaH2_(x, 1, 10**y) for x in lT] for y in ln]
+	plt.figure()
+	a = [plt.plot(lT, lrat[i], ls = lls[i], lw = llw[i], label=r'$n_{\mathrm{H_{2}}}=10^{'+str(ln[i])+'}\ \mathrm{cm^{-3}}$') for i in range(len(ln))]
+	plt.plot([30, 1e4], [1,1],'k:',lw=2)
+	plt.legend()
+	plt.xlim(30, 1e4)
+	plt.xlabel(r'$T\ [\mathrm{K}]$')
+	plt.ylabel(r'Ratio of cooling rate')
+	plt.xscale('log')
+	#plt.yscale('log')
+	plt.tight_layout()
+	plt.savefig('LambdaH2_radio.pdf')
 
 
