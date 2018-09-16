@@ -5,18 +5,19 @@ if __name__ == "__main__":
 	sca = 0
 	#nline = 42
 	#ncore = 6
-	rep0 = 'halo1_jj/'
+	#rep0 = 'halo1_jj/'
+	rep0 = 'halo1_jj_new/'
 	ldir = ['NL4_zoom_wdm/'+rep0, 'NL4_zoom_cdm/'+rep0]
 	#ldir = ['halo1_jj_wdm/','halo1_jj_cdm/']
 	Zsh = 1e-4
 
-	sn0 = 25
-	sn1 = 25
+	sn0 = 27
+	sn1 = 27
 
 	out0 = []
 	out1 = []
 	if tag==0:
-		for sn in range(0,26):
+		for sn in range(0,28):
 			if sn<=sn0:
 				out0.append(metal(sn=sn, indm=1, rep=ldir[0]))
 			if sn<=sn1:
