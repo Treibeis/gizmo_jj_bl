@@ -359,7 +359,7 @@ def luminosity_tot(sn, rep = './', box = [[1750]*3,[2250]*3], nsh = 1.0, nsh2 = 
 			nHeI = ln[i]*(1-xh)
 			Lam = LambdaBre(T, nHII, 0, 0, ne) + LambdaIC(T, z, ne) + LambdaHeI(T, nHeI, ne) +\
 				LambdaHI(T, nH0, ne) + LambdaHII(T, nHII, ne) +\
-				LambdaH2(T, nH2, nH0) + LambdaHD(T, nHD, nH0, n)
+				LambdaH2_(T, nH2, nH0) + LambdaHD(T, nHD, nH0, n)
 			Ltot += Lam*V
 		output.put(Ltot)
 	processes = [mp.Process(target=sess, args=(lpr[i][0], lpr[i][1])) for i in range(ncore)]
@@ -435,8 +435,8 @@ def luminosity_particle(sn, rep = './', box = [[1900]*3,[2000]*3], nsh = 1e-5, b
 			Z = np.sum(np.exp(-H2_E/T)*H2_g)
 			L_lines =  np.exp(-H2_E/T)*H2_g * H2_E21 * H2_A * 1e4*HBAR*2*np.pi*SPEEDOFLIGHT/Z /(1+ncr(T)/nH0) * nH2 * V
 			lH2 += L_lines
-			ldlh2[i-pr0] = V*LambdaH2(T, nH2, nH0)
-			ldlhd[i-pr0] = np.sum(L_lines) #V*LambdaHD(T, nHD, nH0, n)
+			ldlh2[i-pr0] = np.sum(L_lines)#V*LambdaH2(T, nH2, nH0)
+			ldlhd[i-pr0] = V*LambdaHD(T, nHD, nH0, n)
 			#lH2 += ldlh2[i-pr0]*H2_line_dis(T)
 			#profile0 = lambda x: profile0(x) + stats.norm.pdf(x, nu_loc, nu_scale)*dlh2
 			#profile1 = lambda x: profile1(x) + stats.norm.pdf(x, nu_loc, nu_scale)*dlhd
