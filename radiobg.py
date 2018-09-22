@@ -85,31 +85,32 @@ def Lnu_M(L, z, Mref = Mref, Mbd = 1e10, lognu_ref = np.log10(NUREF), Tmini = 1e
 
 from scipy.interpolate import interp2d
 
-def dndm_z(z1=0, z0=31, mode=0, nbin=100, Mmax=10, load=0):
+def dndm_z(z1=0, z0=31, mode=0, nbin=100, Mmax=10, load=0, h = 0.6774):
+	offset = np.log10(0.6774)
 	if load==0:
 		lz = np.linspace(z1, z0, nbin)
 		out = []
 		if mode==0:
 			hmf_ = hmf.MassFunction()
-			hmf_.update(n=0.966, sigma_8=0.829,cosmo_params={'Om0':0.315,'H0':67.74},Mmin=np.log10(Mdown(max(z0,z1)))-1,Mmax=Mmax+1)
+			hmf_.update(n=0.966, sigma_8=0.829,cosmo_params={'Om0':0.315,'H0':67.74},Mmin=np.log10(Mdown(max(z0,z1)))-1+offset,Mmax=Mmax+1+offset)
 		else:
 			hmf_ = hmf.wdm.MassFunctionWDM(wdm_mass=3)
-			hmf_.update(n=0.966, sigma_8=0.829,cosmo_params={'Om0':0.315,'H0':67.74},Mmin=np.log10(Mdown(max(z0,z1)))-1,Mmax=Mmax+1)
+			hmf_.update(n=0.966, sigma_8=0.829,cosmo_params={'Om0':0.315,'H0':67.74},Mmin=np.log10(Mdown(max(z0,z1)))+1+offset,Mmax=Mmax+1+offset)
 		for z in lz:
 			hmf_.update(z=z)
 			out.append(hmf_.dndlog10m)
-		lm = hmf_.m
+		lm = np.array(hmf_.m)/h
 		totxt('mlist.txt',[lm],0,0,0)
 		totxt('zlist.txt',[lz],0,0,0)
 		totxt('dndm_'+lmodel[mode]+'.txt',out,0,0,0)
 	else:
-		lm = retxt('mlist.txt',1,0,0)[0]
-		lz = retxt('zlist.txt',1,0,0)[0]
-		out = retxt('dndm_'+lmodel[mode]+'.txt',nbin,0,0)
+		lm = np.array(retxt('mlist.txt',1,0,0)[0])
+		lz = np.array(retxt('zlist.txt',1,0,0)[0])
+		out = np.array(retxt('dndm_'+lmodel[mode]+'.txt',nbin,0,0))
 	return interp2d(lm,lz,out)
 
-dndm0 = dndm_z(mode=0,Mmax=Mmax,load=1)
-dndm1 = dndm_z(mode=1,Mmax=Mmax,load=1)
+dndm0 = dndm_z(mode=0,Mmax=Mmax,load=0)
+dndm1 = dndm_z(mode=1,Mmax=Mmax,load=0)
 
 def Jnu_final(z1, nu, z0 = 30, L = lambda x:1e30, Mref=Mref, dndm=dndm0, zstep = 1.0, h=0.6774):
 	start = time.time()
@@ -236,8 +237,9 @@ if __name__ == "__main__":
 	ltrec = [lt_m(x)/1e6 for x in lm]
 	lt_sfr = tau_ff_SFR(lm, z_eg)/1e6
 	plt.figure()
-	plt.plot(lm, ltrec, label=r'This work')
-	plt.plot(lm, lt_sfr, '--',label=r'Mirocha:18')
+	plt.plot(lm, ltrec)#, label=r'This work')
+	#plt.plot(lm, lt_sfr, '--',label=r'Mirocha:18')
+	#plt.legend()
 	plt.xscale('log')
 	#plt.yscale('log')
 	plt.xlabel(r'$M\ [\odot]$')
@@ -395,7 +397,7 @@ if __name__ == "__main__":
 				lJ0[i]=lJ0[i-1]
 	ax1.plot(lz, Tnu(310,np.array(lJ1)), label=r'$\nu_{\mathrm{obs}}=310\ \mathrm{MHz}$, '+lmodel_[1],lw=1)
 	ax1.plot(lz, Tnu(310,np.array(lJ0)), '--',label=r'$\nu_{\mathrm{obs}}=310\ \mathrm{MHz}$, '+lmodel_[0],lw=1)
-	yup = 9e3#np.max([60, np.max(Tnu(310,np.array(lJ0))), np.max(Tnu(310,np.array(lJ1)))])*1.05
+	yup = 13e3#np.max([60, np.max(Tnu(310,np.array(lJ0))), np.max(Tnu(310,np.array(lJ1)))])*1.05
 	ax1.plot([6,6],[1e-9,yup],lw=0.5,color='k')
 	ax1.fill_between([0,6],[1e-9,1e-9],[yup,yup],facecolor='gray',alpha=0.2)
 	ax1.set_xlim(0,20)
