@@ -1,10 +1,15 @@
 from radio import *
-Vz = 4**3 * 0.3783187*0.3497985*0.399293243 /0.6774**3
+Vz0 = 4**3 * 0.3783187*0.3497985*0.399293243 /0.6774**3
+size = np.array([0.3783187, 0.3497985, 0.399293243])*0.75
+box_zoom = np.array([np.ones(3)*0.5 - size/2, np.ones(3)*0.5 + size/2])*4000
+#box_zoom = [[1500]*3, [2500]*3]
 
-def metal(sn = 50, rep = './', indm = 0, edge = [0.01, 100.0], base = 'snapshot', ext = '.hdf5', Zth = 1e-4, mode=0, Zsun = 0.0134):
+def metal(sn = 50, rep = './', indm = 0, edge = [0.01, 100.0], base = 'snapshot', ext = '.hdf5', Zth = 1e-4, mode=0, Zsun = 0.0134, box = box_zoom):
 	ds = yt.load(rep+base+'_'+str(sn).zfill(3)+ext)
 	z = ds['Redshift']
-	ad = ds.all_data()
+	ad = ds.box(box[0],box[1])
+	print(box)
+	#ad = ds.all_data()
 	keys = ds.field_list
 	tag = np.sum([x[0] == 'PartType4' for x in keys])
 	Ngas = len(ad[('PartType0', 'Metallicity_00')])
@@ -12,6 +17,8 @@ def metal(sn = 50, rep = './', indm = 0, edge = [0.01, 100.0], base = 'snapshot'
 	Zraw0 = ad[('PartType0', 'Metallicity_01')]/Zsun
 	Zraw1 = ad[('PartType0', 'Metallicity_02')]/Zsun
 	lV = (ad[('PartType0', 'Masses')]/ad[('PartType0', 'Density')]).to('Mpc**3')
+	#Vz = Vz0/(1+z)**3
+	Vz = np.sum(lV)
 	popII0 = Zraw0 > Zth
 	popII1 = Zraw1 > Zth
 	popII = Zraw > Zth
@@ -57,8 +64,10 @@ if __name__ == "__main__":
 	indm = int(sys.argv[2])
 	sn = int(sys.argv[1])
 	if indm==0:
-		rep0 = 'halo1_jj_cdm/'
+		#rep0 = 'halo1_jj_cdm/'
+		rep0 = 'halo1_jj_cdm_new/'
 	else:
-		rep0 = 'halo1_jj_wdm/'
+		#rep0 = 'halo1_jj_wdm/'
+		rep0 = 'halo1_jj_wdm_new/'
 	out = metal(sn=sn, indm=indm, rep=rep0,mode=1)
 	print('Average Z: {}, volume filling fraction: {}'.format(out[0], out[1]))
