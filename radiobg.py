@@ -154,7 +154,7 @@ if __name__ == "__main__":
 	lnu_z0 = np.array(retxt(rep0+'luminosity_z_100_CDM.txt',2,1,0))
 	lt0 = np.array([TZ(x)/YR/1e6 for x in lnu_z0[0][sn_min-1:sn_max+1]])
 	ldt0 = np.abs(lt0[1:]-lt0[:-1])
-	lL_nu0 = retxt(rep0+'Lnu_cdm.txt',2,0,0)
+	lL_nu0 = np.array(retxt(rep0+'Lnu_cdm.txt',2,0,0))
 	nbin_nu = len(lL_nu0[0])
 	lnu_raw0 = np.zeros(nbin_nu)
 	for i in range(sn_min, sn_max+1):
@@ -164,7 +164,7 @@ if __name__ == "__main__":
 	lnu_z1 = np.array(retxt(rep0+'luminosity_z_100_WDM_3_kev.txt',2,1,0))
 	lt1 = np.array([TZ(x)/YR/1e6 for x in lnu_z1[0][sn_min-1:]])
 	ldt1 = np.abs(lt1[1:]-lt1[:-1])
-	lL_nu1 = retxt(rep0+'Lnu_wdm.txt',2,0,0)
+	lL_nu1 = np.array(retxt(rep0+'Lnu_wdm.txt',2,0,0))
 	nbin_nu = len(lL_nu1[0])
 	lnu_raw1 = np.zeros(nbin_nu)
 	for i in range(sn_min, sn_max+1):
@@ -176,13 +176,15 @@ if __name__ == "__main__":
 
 	print(Tref/1e6, np.sum(ldt1))
 
+	nubd = 1e6
 	plt.figure()
-	plt.plot(lL_nu1[0], lL_nu1[1], label=lmodel_[1])
-	plt.plot(lL_nu0[0], lL_nu0[1], '--', label=lmodel_[0])
+	plt.plot(lL_nu1[0][lL_nu1[0]>nubd], lL_nu1[1][lL_nu1[0]>nubd], label=lmodel_[1])
+	plt.plot(lL_nu0[0][lL_nu0[0]>nubd], lL_nu0[1][lL_nu0[0]>nubd], '--', label=lmodel_[0])
 	plt.legend()
 	plt.xlabel(r'$\nu\ [\mathrm{Hz}]$')
 	plt.ylabel(r'$L^{\mathrm{S}}_{\nu}\ [\mathrm{erg\ s^{-1}\ Hz^{-1}}]$')
 	plt.xscale('log')
+	#plt.ylim()
 	if mode==0:
 		plt.yscale('log')
 	plt.tight_layout()
