@@ -19,7 +19,7 @@
 #define ENERGY_OTHER 0.0
 
 // Bubble properties
-#define HII_DENSITY_ITERATION 5
+#define HII_DENSITY_ITERATION 1
 #define HII_DENSITY_POPII 1.0
 #define I_FRONT_RADIUS 0.240     //kpc/h PHYSICAL
 #define TEMP_BUBBLE 2.0e4  //Kelvin
