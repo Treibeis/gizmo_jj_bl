@@ -680,10 +680,15 @@ def luminosity(dg, rnu = [np.log10(numax())-2.5, np.log10(numax())+0.5], nb = 10
 	lnu0 = np.linspace(10**rnu[0], 10**rnu[1], ncore+1)
 	nb_p = int(nb/ncore)
 	def sess(i):
-		edge = np.linspace(lnu0[i],lnu0[i+1],nb_p+1)
-		lnu = (edge[:-1]+edge[1:])/2.0
-		dnu = edge[1:]-edge[:-1]
-		out = np.sum([Vc*np.sum(jnu_(lnu[x], dg['T'], dg['eps'])*4*np.pi)*dnu[x] for x in range(nb_p)])
+		def integrand(nu):
+			return np.sum(jnu_(nu, dg['T'], dg['eps']))
+		out = 4*np.pi*Vc*quad(integrand, lnu0[i], lnu0[i+1], epsrel=1e-4)[0]
+		#edge = np.linspace(lnu0[i],lnu0[i+1],nb_p+1)
+		#lnu = (edge[:-1]+edge[1:])/2.0
+		#dnu = edge[1:]-edge[:-1]
+		#llnu = [jnu_(lnu[x], dg['T'], dg['eps']) for x in range(nb_p)]
+		#out = 4*np.pi*Vc*np.trapz(llnu, lnu)
+		#out = np.sum([Vc*np.sum(jnu_(lnu[x], dg['T'], dg['eps'])*4*np.pi)*dnu[x] for x in range(nb_p)])
 		output.put(out)
 	processes = [mp.Process(target=sess, args=(i,)) for i in range(ncore)]
 	for p in processes:
