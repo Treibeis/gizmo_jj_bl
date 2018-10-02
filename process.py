@@ -355,6 +355,7 @@ def phase(sn = 50, rep = './', indm = 0, edge = [0.01, 100.0], base = 'snapshot'
 	lxhd = ad[('PartType0','Primordial HD')]
 	lxe = ad[('PartType0','Primordial e-')]
 	lMBE = MBE(lT, nd, lxe)
+	lne = lxe*nd
 	Mres = 32*ad[('PartType0','Masses')][0].to('Msun')
 
 	racc = np.array((Mres*UM/1e10/(4*np.pi*1e2*1.22*PROTON/3))**(1/3)/UL)
@@ -366,6 +367,7 @@ def phase(sn = 50, rep = './', indm = 0, edge = [0.01, 100.0], base = 'snapshot'
 	rxd = np.percentile(np.log10(lxhd), edge)
 	rxd[0] = max(rxd[0], -11)
 	rxe = np.percentile(np.log10(lxe), edge)
+	rne = np.percentile(np.log10(lne), edge)
 	rMBE = np.percentile(np.log10(lMBE), edge)
 	print(np.max(nd))
 
@@ -379,6 +381,20 @@ def phase(sn = 50, rep = './', indm = 0, edge = [0.01, 100.0], base = 'snapshot'
 	plt.title(r'$[\mathrm{H_{2}/H}]-T$ phase diagram for '+lmodel[indm]+' at $z=$'+str(int(ds['Redshift']*100)/100),size=12)
 	plt.tight_layout()
 	plt.savefig(rep+'XH2T_'+lmodel[indm]+'_'+str(sn)+'.pdf')
+
+	plt.figure()
+	plt.subplot(111)
+	plt.hist2d(np.log10(lne),np.log10(lT),bins=100,norm=LogNorm(),range=[rne,rT])
+	plt.plot(rne,np.log10([2.73*ds['Redshift'],2.73*ds['Redshift']]),'k:',label='CMB')
+	plt.legend()
+	cb = plt.colorbar()
+	cb.set_label(r'$\log(N)$')
+	cb.set_clim(1.0,1e6)
+	plt.xlabel(r'$\log(n_{e}\ [\mathrm{cm^{-3}}])$')
+	plt.ylabel(r'$\log(T\ [\mathrm{K}])$')
+	#plt.title(r'$T-n$ phase diagram for '+lmodel[indm]+' at $z=$'+str(int(ds['Redshift']*100)/100),size=12)
+	plt.tight_layout()
+	plt.savefig(rep+'Tne_'+lmodel[indm]+'_'+str(sn)+'.pdf')
 
 	plt.figure()
 	plt.subplot(111)
