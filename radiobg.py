@@ -145,6 +145,7 @@ if __name__ == "__main__":
 	sn_min = 15
 	sn_max = 25
 	rep0 = 'halo1_jj/'
+	#rep0 = 'halo1_jj_new/'
 
 	mode = int(sys.argv[1])
 	if len(sys.argv)>=3:
@@ -404,11 +405,11 @@ if __name__ == "__main__":
 				lJ0[i]=lJ0[i-1]
 	ax1.plot(lz, Tnu(310,np.array(lJ1)), label=r'$\nu_{\mathrm{obs}}=310\ \mathrm{MHz}$, '+lmodel_[1],lw=1)
 	ax1.plot(lz, Tnu(310,np.array(lJ0)), '--',label=r'$\nu_{\mathrm{obs}}=310\ \mathrm{MHz}$, '+lmodel_[0],lw=1)
-	yup = 13e3#np.max([60, np.max(Tnu(310,np.array(lJ0))), np.max(Tnu(310,np.array(lJ1)))])*1.05
+	yup = np.max([60, np.max(Tnu(310,np.array(lJ0))), np.max(Tnu(310,np.array(lJ1)))])*1.05
 	ax1.plot([6,6],[1e-9,yup],lw=0.5,color='k')
 	ax1.fill_between([0,6],[1e-9,1e-9],[yup,yup],facecolor='gray',alpha=0.2)
 	ax1.set_xlim(0,20)
-	ax1.set_ylim(1e-9,yup)
+	ax1.set_ylim(1e-3,yup)
 	ax1.set_xlabel(r'$z_{\mathrm{end}}$')
 	ax1.set_ylabel(r'$\langle\delta T\rangle(>z_{\mathrm{end}}) [\mathrm{mK}]$')
 	ax1.legend()
