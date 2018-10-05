@@ -101,11 +101,11 @@ def dndm_z(z1=0, z0=31, mode=0, nbin=100, Mmax=10, load=0, h = 0.6774):
 			out.append(hmf_.dndlog10m)
 		lm = np.array(hmf_.m)/h
 		totxt('mlist_'+lmodel[mode]+'.txt',[lm],0,0,0)
-		totxt('zlist_'+lmodel[mode]+'.txt',[lz],0,0,0)
+		totxt('zlist.txt',[lz],0,0,0)
 		totxt('dndm_'+lmodel[mode]+'.txt',out,0,0,0)
 	else:
 		lm = np.array(retxt('mlist_'+lmodel[mode]+'.txt',1,0,0)[0])
-		lz = np.array(retxt('zlist_'+lmodel[mode]+'.txt',1,0,0)[0])
+		lz = np.array(retxt('zlist.txt',1,0,0)[0])
 		out = np.array(retxt('dndm_'+lmodel[mode]+'.txt',nbin,0,0))
 		#print(lm.shape, lz.shape, out.shape)
 	return interp2d(lm,lz,out)
@@ -237,6 +237,7 @@ if __name__ == "__main__":
 	plt.savefig(rep0+'Lnu_M.pdf')
 	print('Lnu_ref(CDM): {}, Lnu_ref(WDM): {} [erg s^-1 Hz^-1]'.format(lnu_m0(Mref, NUREF/1e6), lnu_m1(Mref, NUREF/1e6)))
 	print('Lnu_mini: {} [erg s^-1 Hz^-1]'.format(Lnu_minih(Mref, z=z_eg)))
+	print('Lnu_SFR: {} [erg s^-1 Hz^-1]'.format(Lnu_ff_SFR(NUREF, Mref, z=z_eg)))
 	#plt.show()
 
 	lt_m = tau_M(z_eg)
