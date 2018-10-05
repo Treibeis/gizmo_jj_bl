@@ -100,17 +100,18 @@ def dndm_z(z1=0, z0=31, mode=0, nbin=100, Mmax=10, load=0, h = 0.6774):
 			hmf_.update(z=z)
 			out.append(hmf_.dndlog10m)
 		lm = np.array(hmf_.m)/h
-		totxt('mlist.txt',[lm],0,0,0)
-		totxt('zlist.txt',[lz],0,0,0)
+		totxt('mlist_'+lmodel[mode]+'.txt',[lm],0,0,0)
+		totxt('zlist_'+lmodel[mode]+'.txt',[lz],0,0,0)
 		totxt('dndm_'+lmodel[mode]+'.txt',out,0,0,0)
 	else:
-		lm = np.array(retxt('mlist.txt',1,0,0)[0])
-		lz = np.array(retxt('zlist.txt',1,0,0)[0])
+		lm = np.array(retxt('mlist_'+lmodel[mode]+'.txt',1,0,0)[0])
+		lz = np.array(retxt('zlist_'+lmodel[mode]+'.txt',1,0,0)[0])
 		out = np.array(retxt('dndm_'+lmodel[mode]+'.txt',nbin,0,0))
+		#print(lm.shape, lz.shape, out.shape)
 	return interp2d(lm,lz,out)
 
-dndm0 = dndm_z(mode=0,Mmax=Mmax,load=0)
-dndm1 = dndm_z(mode=1,Mmax=Mmax,load=0)
+dndm0 = dndm_z(mode=0,Mmax=Mmax,load=1)
+dndm1 = dndm_z(mode=1,Mmax=Mmax,load=1)
 
 def Jnu_final(z1, nu, z0 = 30, L = lambda x:1e30, Mref=Mref, dndm=dndm0, zstep = 1.0, h=0.6774):
 	start = time.time()
@@ -141,7 +142,7 @@ if __name__ == "__main__":
 	load = 1
 	tag = 1
 	nbin = 50
-	sn_min = 16
+	sn_min = 15
 	sn_max = 25
 	rep0 = 'halo1_jj/'
 
@@ -152,29 +153,32 @@ if __name__ == "__main__":
 		zend = 7.5
 
 	lnu_z0 = np.array(retxt(rep0+'luminosity_z_100_CDM.txt',2,1,0))
-	lt0 = np.array([TZ(x)/YR/1e6 for x in lnu_z0[0][sn_min-1:sn_max+1]])
-	ldt0 = np.abs(lt0[1:]-lt0[:-1])
+	lt0 = np.array([TZ(x)/YR/1e6 for x in lnu_z0[0][sn_min:sn_max+1]])
+	dt0 = np.abs(lt0[-1]-lt0[0])
 	lL_nu0 = np.array(retxt(rep0+'Lnu_cdm.txt',2,0,0))
 	nbin_nu = len(lL_nu0[0])
-	lnu_raw0 = np.zeros(nbin_nu)
+	lnu_raw0 = []#np.zeros(nbin_nu)
 	for i in range(sn_min, sn_max+1):
-		lnu_raw0 += np.array(retxt(rep0+'Lnu_cdm_'+str(i)+'.txt',2,0,0)[1])*ldt0[i-sn_min]
-	lnu0 = lnu_raw0/np.sum(ldt0)
+		lnu_raw0.append(retxt(rep0+'Lnu_cdm_'+str(i)+'.txt',2,0,0)[1])
+	lnu_raw0 = np.array(lnu_raw0).T
+	lnu0 = np.array([np.trapz(lnu_raw0[i], lt0) for i in range(len(lnu_raw0))])/dt0
+	print(dt0)
 
 	lnu_z1 = np.array(retxt(rep0+'luminosity_z_100_WDM_3_kev.txt',2,1,0))
-	lt1 = np.array([TZ(x)/YR/1e6 for x in lnu_z1[0][sn_min-1:]])
-	ldt1 = np.abs(lt1[1:]-lt1[:-1])
+	lt1 = np.array([TZ(x)/YR/1e6 for x in lnu_z1[0][sn_min:sn_max+1]])
+	dt1 = np.abs(lt1[-1]-lt1[0])
 	lL_nu1 = np.array(retxt(rep0+'Lnu_wdm.txt',2,0,0))
 	nbin_nu = len(lL_nu1[0])
-	lnu_raw1 = np.zeros(nbin_nu)
+	lnu_raw1 = []#np.zeros(nbin_nu)
 	for i in range(sn_min, sn_max+1):
-		lnu_raw1 += np.array(retxt(rep0+'Lnu_wdm_'+str(i)+'.txt',2,0,0)[1])*ldt1[i-sn_min]
-	lnu1 = lnu_raw1/np.sum(ldt1)
+		lnu_raw1.append(retxt(rep0+'Lnu_wdm_'+str(i)+'.txt',2,0,0)[1])
+	lnu_raw1 = np.array(lnu_raw1).T
+	lnu1 = np.array([np.trapz(lnu_raw1[i], lt1) for i in range(len(lnu_raw1))])/dt1
 
 	L_nu0 = interp1d(np.log10(lL_nu0[0]),np.array(lnu0))
 	L_nu1 = interp1d(np.log10(lL_nu1[0]),np.array(lnu1))
 
-	print(Tref/1e6, np.sum(ldt1))
+	print(Tref/1e6, np.sum(dt1))
 
 	nubd = 1e6
 	plt.figure()
@@ -194,8 +198,8 @@ if __name__ == "__main__":
 		plt.savefig(rep0+'Lnu_com.pdf')
 
 	plt.figure()
-	plt.plot(lL_nu1[0], lnu0, label=lmodel_[1])
-	plt.plot(lL_nu0[0], lnu1, '--', label=lmodel_[0])
+	plt.plot(lL_nu1[0], lnu1, label=lmodel_[1])
+	plt.plot(lL_nu0[0], lnu0, '--', label=lmodel_[0])
 	plt.legend()
 	plt.xlabel(r'$\nu\ [\mathrm{Hz}]$')
 	plt.ylabel(r'$L^{\mathrm{ref}}_{\nu}\ [\mathrm{erg\ s^{-1}\ Hz^{-1}}]$')
@@ -217,13 +221,13 @@ if __name__ == "__main__":
 	lL1 = [lnu_m1(x, NUREF/1e6) for x in lm]
 	lL_sfr = [Lnu_ff_SFR(NUREF, x, z_eg, Te) for x in lm]
 	plt.figure()
-	plt.plot(lm, lL1, label=lmodel_[0])
-	plt.plot(lm, lL0, label=lmodel_[1],ls='--')
+	plt.plot(lm, lL1, label=lmodel_[1])
+	plt.plot(lm, lL0, label=lmodel_[0],ls='--')
 	plt.plot(lm, Lnu_minih(lm, z=z_eg),label=r'$L_{\nu}^{\mathrm{mini}}$',ls=':')
 	plt.plot(lm, lL_sfr,ls='-.',label=r'$L_{\nu}^{\mathrm{SFR}}$')#, $T_{e}='+str(Te)+'\ \mathrm{K}$')
 	#plt.plot([Mdown(z_eg),Mup(z_eg)], [Lnu_minih(Mdown(z_eg), z_eg),Lnu_minih(Mup(z_eg), z_eg)],marker='*',label='Minihalo',ls=':')
-	plt.scatter([Mref],[lnu_m1(Mref, NUREF/1e6)],marker='^',label=r'$L_{\nu}^{\mathrm{ref}}$, '+lmodel_[0],alpha=0.5)
-	plt.scatter([Mref],[lnu_m0(Mref, NUREF/1e6)],marker='o',label=r'$L_{\nu}^{\mathrm{ref}}$, '+lmodel_[1],alpha=0.5)
+	plt.scatter([Mref],[lnu_m1(Mref, NUREF/1e6)],marker='^',label=r'$L_{\nu}^{\mathrm{ref}}$, '+lmodel_[1],alpha=0.5)
+	plt.scatter([Mref],[lnu_m0(Mref, NUREF/1e6)],marker='o',label=r'$L_{\nu}^{\mathrm{ref}}$, '+lmodel_[0],alpha=0.5)
 	plt.xscale('log')
 	plt.yscale('log')
 	plt.xlabel(r'$M\ [\odot]$')
@@ -417,6 +421,7 @@ if __name__ == "__main__":
 	lT_ = Tnu(310,np.array(lJ0))
 	zmax = lz[[i for i in range(len(lT_)) if lT_[i]==np.max(lT_)][0]]
 	print('Tnu at 310 MHz: {}, for z = {}'.format(np.max(lT_), zmax))
+	print(np.max(Tnu(310,np.array(lJ0))))
 
 
 	"""

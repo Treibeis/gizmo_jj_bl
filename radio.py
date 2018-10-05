@@ -42,7 +42,7 @@ def Tvir(m = 1e10, z = 10.0, delta = 200):
 #M_dot_z = interp1d([0,4,10,20,30],[-4,-4,np.log10(3)-3,np.log10(2)-3])
 
 def SFR_MF(M, z):
-	sfr0 = 3e-3*((1+z)/11)**2.5
+	sfr0 = 3e-3*((1+z)/11)**1.5
 	return sfr0*M/1e8 * (M<=1e10) + sfr0*1e2*(M/1e10)**(5/3) * (M>1e10)*(M<=1e12) + sfr0*1e2*(1e2)**(5/3) * (M>1e12)
 
 def SFE_MF(M, z):
