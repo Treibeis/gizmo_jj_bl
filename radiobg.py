@@ -348,11 +348,11 @@ if __name__ == "__main__":
 	ax1.plot(lnu, Tnu(lnu,np.array(lJnu1)), label=r'Structure formation, '+lmodel_[1],lw=1)
 	ax1.plot(lnu, Tnu(lnu,np.array(lJnu0)), label=r'Structure formation, '+lmodel_[0],ls='--',lw=1)
 	ax1.plot(lnu, Tnu(lnu,JHII_z(6)),'-.',label=r'Minihalo',lw=1)
-	ax1.plot(lnu[lnu>0], Tnu(lnu[lnu>0],10**J21_z(1420/lnu[lnu>0]-1)), ls=':',color='r', label=r'21 cm emission',lw=1)
+	ax1.plot(lnu[lnu>0], Tnu(lnu[lnu>0],10**J21_z(1420/lnu[lnu>0]-1)), ls=':',color='r', label=r'21 cm',lw=1)
 	lTnu_IGM = [Tnu(x,Jnu_bg(x)) for x in lnu]
 	ax1.plot(lnu, lTnu_IGM, ls='-.',lw=2,color='g',label=r'ionized diffuse IGM')
 	ax1.plot(lnu,Tnu_SKA(lnu),'k--',label=r'SKA',lw=2)
-	ax1.fill_between(lnu,1e3*Tnu_sky_ff(lnu,-1),1e3*Tnu_sky_ff(lnu,1),facecolor='gray',label=r'$T_{\mathrm{ff}}^{\mathrm{G}}$',alpha=0.5)
+	ax1.fill_between(lnu,1e3*Tnu_sky_ff(lnu,-1),1e3*Tnu_sky_ff(lnu,1),facecolor='gray',label=r'$T_{\mathrm{ff}}^{\mathrm{G}}$ (ARCADE 2)',alpha=0.5)
 	yup = np.max([160.0,np.max(Tnu(lnu,np.array(lJnu1))),np.max(Tnu(lnu,np.array(lJnu0)))])*1.05
 	ax1.plot([1420/7,1420/7],[1e-4,yup],lw=0.5,color='k')
 	ax1.fill_between([1420/7,1400],[1e-4,1e-4],[yup,yup],facecolor='gray',alpha=0.2)
@@ -379,7 +379,7 @@ if __name__ == "__main__":
 	ax1.plot(lnu_/1e3, Tnu(lnu_,JHII_z(6)),'-.',label=r'Minihalo',lw=1)
 	ax1.plot(lnu_/1e3, [Tnu(x,Jnu_bg(x)) for x in lnu_], ls='-.',lw=2,color='g',label=r'ionized diffuse IGM')
 	ax1.plot(lnu_/1e3,Tnu_SKA(lnu_),'k--',label=r'SKA', lw=2)
-	ax1.fill_between(lnu_/1e3,1e3*Tnu_sky_ff(lnu_,-1),1e3*Tnu_sky_ff(lnu_,1),facecolor='gray',label=r'$T_{\mathrm{ff}}^{\mathrm{G}}$',alpha=0.5)
+	ax1.fill_between(lnu_/1e3,1e3*Tnu_sky_ff(lnu_,-1),1e3*Tnu_sky_ff(lnu_,1),facecolor='gray',label=r'$T_{\mathrm{ff}}^{\mathrm{G}}$ (ARCADE 2)',alpha=0.5)
 	ax1.set_xlim(1.0,90)
 	yup = np.max([0.31,np.max(Tnu(lnu_,np.array(lJnu1_))),np.max(Tnu(lnu_,np.array(lJnu0_)))])*1.05
 	ax1.set_ylim(1e-6,yup)
@@ -425,6 +425,26 @@ if __name__ == "__main__":
 	print('Tnu at 310 MHz: {}, for z = {}'.format(np.max(lT_), zmax))
 	print(np.max(Tnu(310,np.array(lJ0))))
 
+	lrat = np.array(lJ0)/np.array(lJ1)
+	fig = plt.figure()
+	ax1 = fig.add_subplot(111)
+	ax1.plot(lz, lrat, label=r'$\nu_{\mathrm{obs}}=310\ \mathrm{MHz}$, '+lmodel_[1],lw=1)
+	yup = np.max([np.max(lrat), np.max(lrat)])*1.05
+	ax1.plot([6,6],[1e-9,yup],lw=0.5,color='k')
+	ax1.fill_between([0,6],[1e-9,1e-9],[yup,yup],facecolor='gray',alpha=0.2)
+	ax1.set_xlim(0,20)
+	ax1.set_ylim(1,yup)
+	ax1.set_xlabel(r'$z_{\mathrm{end}}$')
+	ax1.set_ylabel(r'CDM/WDM_3_keV')
+	ax1.legend()
+	if mode==0:
+		ax1.set_yscale('log')
+	plt.tight_layout()
+	if mode==0:
+		plt.savefig(rep0+'logTnuz_ratio.pdf')
+	else:
+		plt.savefig(rep0+'Tnuz_ratio.pdf')
+	print(lrat[-10:])
 
 	"""
 	fig = plt.figure()

@@ -4,8 +4,10 @@ Vz = 4**3 * 0.3783187*0.3497985*0.399293243 /0.6774**3
 if __name__ == "__main__":
 	sca =int(sys.argv[1])
 	rep0 = 'halo1_jj/'
+	#rep0 = 'halo1_jj_new/'
 	#ldir = ['NL4_zoom_wdm/'+rep0, 'NL4_zoom_cdm/'+rep0]
 	ldir = ['halo1_jj_wdm/', 'halo1_jj_cdm/']
+	#ldir = ['halo1_jj_wdm_new/','halo1_jj_cdm_new/']
 	d0_III = np.array(retxt(ldir[0]+'popIII_sfr.txt',4,0,0))
 	d0_II = np.array(retxt(ldir[0]+'popII_sfr.txt',4,0,0))
 	d1_III = np.array(retxt(ldir[1]+'popIII_sfr.txt',4,0,0))
@@ -27,6 +29,7 @@ if __name__ == "__main__":
 	refIII = np.array(retxt(repref+'popIII_sfr_s2_skx.txt',4,0,0))
 	refII = np.array(retxt(repref+'popII_sfr_s2_skx.txt',4,0,0))
 
+	down1, up1 = 5e-7, 1e-1
 	plt.figure()
 	#plt.plot(lz0[d0_III[2]>0],(d0_III[2]+d0_II[2])[d0_III[2]>0],label=lmodel[1])
 	plt.plot(lz0[d0_III[2]>0],d0_III[2][d0_III[2]>0]/Vz,label='PopIII, '+lmodel_[1],lw=3)
@@ -36,6 +39,8 @@ if __name__ == "__main__":
 	plt.plot(1/refIII[0][refIII[3]>0]-1, refIII[3][refIII[3]>0],label='PopIII, Jason:18',lw=0.5)
 	plt.plot(1/refII[0][refII[3]>0]-1, refII[3][refII[3]>0],label='PopII, Jason:18',ls='--',lw=0.5)
 	#plt.plot(lz1[d1_III[2]>0],(d1_III[2]+d1_II[2])[d1_III[2]>0],label=lmodel_[0],ls='--')
+	plt.fill_between([16, 19],[up1, up1],[down1, down1],label='EDGES',facecolor='gray', alpha=0.5)
+	plt.ylim(down1, up1)
 	plt.xlabel(r'$z$')
 	plt.ylabel(r'$\mathrm{SFRD}\ [M_{\odot}\ \mathrm{yr^{-1}\ Mpc^{-3}}]$')
 	if sca>0:
@@ -51,19 +56,25 @@ if __name__ == "__main__":
 	lsm0_ = np.cumsum(d0_II[1]*d0_II[2])
 	lsm1 = np.cumsum(d1_III[1]*d1_III[2])
 	lsm1_ = np.cumsum(d1_II[1]*d1_II[2])
+	for i in range(len(lsm1_)):
+		if lsm1_[i]==0 and lz1_[i]<23:
+			lsm1_[i] = 1e-4
 
 	f0 = interp1d(lz0[lsm0>0],np.log10(lsm0[lsm0>0]))
 	f0_ = interp1d(lz0_[lsm0_>0],np.log10(lsm0_[lsm0_>0]))
 	f1 = interp1d(lz1[lsm1>0],np.log10(lsm1[lsm1>0]))
 	f1_ = interp1d(lz1_[lsm1_>0],np.log10(lsm1_[lsm1_>0]))
 
+	down2, up2 = 5e2/Vz,2e8/Vz
 	plt.figure()
-	plt.plot(lz0[lsm0>0],lsm0[lsm0>0],label='PopIII, '+lmodel_[1],lw=3)
-	plt.plot(lz1[lsm1>0],lsm1[lsm1>0],label='PopIII, '+lmodel_[0])
-	plt.plot(lz0_[lsm0_>0],lsm0_[lsm0_>0],label='PopII, '+lmodel_[1],ls='--',lw=3)
-	plt.plot(lz1_[lsm1_>0],lsm1_[lsm1_>0],label='PopII, '+lmodel_[0],ls='--')
+	plt.plot(lz0[lsm0>0],lsm0[lsm0>0]/Vz,label='PopIII, '+lmodel_[1],lw=3)
+	plt.plot(lz1[lsm1>0],lsm1[lsm1>0]/Vz,label='PopIII, '+lmodel_[0])
+	plt.plot(lz0_[lsm0_>0],lsm0_[lsm0_>0]/Vz,label='PopII, '+lmodel_[1],ls='--',lw=3)
+	plt.plot(lz1_[lsm1_>0],lsm1_[lsm1_>0]/Vz,label='PopII, '+lmodel_[0],ls='--')
+	plt.fill_between([16, 19],[up2, up2],[down2, down2],label='EDGES',facecolor='gray', alpha=0.5)
 	plt.xlabel(r'$z$')
-	plt.ylabel(r'$M_{*}\ [M_{\odot}]$')
+	plt.ylabel(r'$\rho_{*}\ [M_{\odot}\ \mathrm{Mpc^{-3}}]$')
+	plt.ylim(down2, up2)
 	if sca>0:
 		plt.yscale('log')
 	plt.legend()
