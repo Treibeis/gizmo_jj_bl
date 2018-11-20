@@ -5,14 +5,15 @@ if __name__ == "__main__":
 	sca = 0
 	#nline = 42
 	#ncore = 6
-	#rep0 = 'halo1_jj/'
-	rep0 = 'halo1_jj_new/'
-	ldir = ['NL4_zoom_wdm/'+rep0, 'NL4_zoom_cdm/'+rep0]
-	#ldir = ['halo1_jj_wdm/','halo1_jj_cdm/']
+	rep0 = 'halo1_jj/'
+	#rep0 = 'halo1_jj_new/'
+	#ldir = ['NL4_zoom_wdm/'+rep0, 'NL4_zoom_cdm/'+rep0]
+	ldir = ['halo1_jj_wdm/','halo1_jj_cdm/']
+	#ldir = ['halo1_jj_wdm_new/','halo1_jj_cdm_new/']
 	Zsh = 1e-4
 
-	sn0 = 27
-	sn1 = 27
+	sn0 = 25
+	sn1 = 25
 
 	out0 = []
 	out1 = []
@@ -39,6 +40,7 @@ if __name__ == "__main__":
 	plt.plot(out1[0][out1[3]>0], out1[3][out1[3]>0], label='PopIII, '+lmodel_[0],ls='--',marker='o',lw=1)
 	plt.plot(out0[0][out0[1]>0], out0[1][out0[1]>0], label='Total, '+lmodel_[1],lw=2)#,marker='^')
 	plt.plot(out1[0][out1[1]>0], out1[1][out1[1]>0], label='Total, '+lmodel_[0],ls='--',lw=2)#,marker='^')
+	plt.text(8,5e-7,r'$V_{Z,c}\simeq 11\ \mathrm{Mpc^{3}}$')
 	plt.xlabel(r'$z$')
 	plt.ylabel(r'$\langle Z\rangle\ [Z_{\odot}]$')
 	plt.legend()
@@ -57,6 +59,7 @@ if __name__ == "__main__":
 	plt.plot(out1[0][out1[6]>0], out1[6][out1[6]>0], label='PopIII, '+lmodel_[0],ls='--',marker='o')
 	plt.plot(out0[0][out0[4]>0], out0[4][out0[4]>0], label='Total, '+lmodel_[1])#,marker='o')
 	plt.plot(out1[0][out1[4]>0], out1[4][out1[4]>0], label='Total, '+lmodel_[0],ls='--')#,marker='o')
+	plt.text(17.5,1e-3,r'$V_{Z,c}\simeq 11\ \mathrm{Mpc^{3}}$')
 	plt.xlabel(r'$z$')
 	plt.ylabel(r'$\mathcal{F}_{V}(Z> 10^{-4}Z_{\odot})$')
 	plt.legend()
