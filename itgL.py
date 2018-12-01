@@ -2,7 +2,7 @@ from radio import *
 
 if __name__ == "__main__":
 	tag = 1
-	sca = 1
+	sca = 0
 	sfdbk = 1
 
 	ncore = 6
@@ -10,8 +10,8 @@ if __name__ == "__main__":
 	rep0 = 'halo1_jj/'
 	#rep0 = 'halo1/'
 	#rep0 = 'halo1_jj_new/'
-	ldir = ['NL4_zoom_wdm/'+rep0, 'NL4_zoom_cdm/'+rep0]
-	#ldir = ['halo1_wdm/','halo1_cdm/']
+	#ldir = ['NL4_zoom_wdm/'+rep0, 'NL4_zoom_cdm/'+rep0]
+	ldir = ['halo1_wdm/','halo1_cdm/']
 	Tsh = 1e4
 	mode = int(sys.argv[1])
 	bins = int(sys.argv[2])
@@ -68,6 +68,77 @@ if __name__ == "__main__":
 	lH20 = np.array(retxt(rep0+'luminosityH2_line_z_'+str(low)+'_'+str(up)+'_'+lmodel[1]+'.txt',nline+1,1,0))
 	lH21 = np.array(retxt(rep0+'luminosityH2_line_z_'+str(low)+'_'+str(up)+'_'+lmodel[0]+'.txt',nline+1,1,0))
 	#print(lH20)
+
+	dl = 2e-22
+
+	lline1 = np.array([lH21[2][-1], lH21[4][-1], lH21[6][-1]])*2e2/0.767
+	lline0 = np.array([lH20[2][-1], lH20[4][-1], lH20[6][-1]])*2e2/0.69
+	fline1 = lline1/(DZ(lu1[0][-1])*(1+lu1[0][-1]))**2/4/np.pi/1e3
+	fline0 = lline0/(DZ(lu0[0][-1])*(1+lu0[0][-1]))**2/4/np.pi/1e3
+	llambda1 = 1/H2_E21[[1,3,5]] * (1+lu1[0][-1]) + 10
+	llambda0 = 1/H2_E21[[1,3,5]] * (1+lu0[0][-1])
+	plt.figure()
+	xmin, xmax = 50, 160
+	ymin, ymax = 1e-24, 1e-20
+	lmark = ['o', '^', '*']
+	lll = ['0-0 S(1)', '0-0 S(3)', '0-0 S(5)']
+	a = [plt.plot([x,x],[ymin, y], label=s+', '+lmodel_[1], marker=m) for x, y, s, m in zip(llambda0, fline0, lll, lmark)]
+	a = [plt.plot([x,x],[ymin, y], '--', label=s+', '+lmodel_[0], marker=m) for x, y, s, m in zip(llambda1, fline1, lll, lmark)]
+	plt.plot([xmin, xmax], [dl, dl], 'k-.', label=r'$5\sigma$ in 10 hrs'+'\ncooled 10-m telescope')
+	plt.xlim(xmin, xmax)
+	plt.ylim(ymin*10, ymax)
+	plt.xlabel(r'$\lambda_{\mathrm{obs}}\ [\mathrm{\mu m}]$')
+	plt.ylabel(r'$F_{\mathrm{H_{2}}}(M=2\times 10^{12}\ M_{\odot})\ [\mathrm{W\ m^{-2}}]$')
+	plt.yscale('log')
+	plt.text(xmin*1.1,ymax*0.5,r'$z='+str(int(lu1[0][-1]*10)/10)+'$')
+	plt.legend()
+	plt.tight_layout()
+	plt.savefig('H2_line_12.pdf')
+
+	xmin,  xmax = 10, 13
+	h = 0.6774
+	z0 = 10
+	LH2_extra = lambda m: 1e39*m/1e10
+	lm0 = np.logspace(10,13,100)
+	lN = []
+	lhmf = [hmf.MassFunction(), hmf.wdm.MassFunctionWDM(wdm_mass=3)]
+	for hmf_ in lhmf:
+		hmf_.update(n=0.966, sigma_8=0.829,cosmo_params={'Om0':0.315,'H0':67.74},Mmin=9,Mmax=15)
+		hmf_.update(z=z0)
+		lm = hmf_.m/h
+		ln = hmf_.ngtm*h**3
+		nm = interp1d(lm,ln)
+		nf = nm(lm0)
+		zi = ZT(np.log10( max((TZ(z0)-100*1e6*YR)/1e9/YR, 0.2)))
+		print(zi)
+		hmf_.update(z=zi)
+		lm = hmf_.m/h
+		ln = hmf_.ngtm*h**3
+		nm = interp1d(lm,ln)
+		ni = nm(lm0)
+		Vshell = 4*np.pi/3 *(DZ(zi)**3-DZ(z0)**3)/(1e3*UL)**3
+		lN.append((nf-ni)*Vshell)
+	print('Volume: {} Mpc^3'.format(Vshell))
+	fig, ax1 = plt.subplots()
+	ax1.fill_between(lm0, LH2_extra(lm0)/(DZ(zi)*(1+zi))**2/4/np.pi/1e3, 10*LH2_extra(lm0)/(DZ(zi)*(1+zi))**2/4/np.pi/1e3, alpha=0.5, facecolor='gray', label=r'$\hat{L}_{\mathrm{H_{2}}}\sim 10^{39-40}\ \mathrm{erg\ s^{-1}}\ (M/10^{10}\ M_{\odot})$')
+	plt.plot([10**xmin, 10**xmax], [dl, dl], 'k-.', label=r'$5\sigma$ in 10 hrs'+'\ncooled 10-m telescope')
+	ax1.plot(lm0, 100*LH2_extra(lm0)/(DZ(zi)*(1+zi))**2/4/np.pi/1e3, label='Optimal lens & shock boosting')
+	ax2 = ax1.twinx()
+	#ax2.plot(lm0, lN[1], label=lmodel_[1])
+	ax2.plot(lm0, lN[0], 'b--')
+	ax1.set_xlabel(r'$M\ [M_{\odot}]$')
+	ax1.set_ylabel(r'$F_{\mathrm{H_{2}}}\ [\mathrm{W\ m^{-2}}]$')
+	ax2.set_ylabel(r'$N_{\mathrm{h}}(m>M)$')
+	ax1.set_yscale('log')
+	ax1.set_xscale('log')
+	ax1.set_xlim(10**xmin, 10**xmax)
+	ax2.set_xlim(10**xmin, 10**xmax)
+	ax2.set_yscale('log')
+	ax2.set_xscale('log')
+	ax1.text(10**xmin*1.2, ymax, r'$z='+str(int(z0*10)/10)+'\sim'+str(int(zi*10)/10)+'$')
+	ax1.legend()
+	plt.tight_layout()
+	plt.savefig('FH2_M_Nh_z'+str(int(z0*100)/100)+'.pdf')
 
 	plt.figure()
 	plt.plot(lu0[0][lu0[1]>0],lH20[2][lu0[1]>0],label='0-0 S(1), '+lmodel_[1],marker='o')
