@@ -2,12 +2,12 @@ from radio import *
 
 if __name__ == "__main__":
 	tag = 1
-	sca = 0
-	sfdbk = 1
+	sca = 1
+	sfdbk = 0
 
 	ncore = 6
 	nline = 42
-	rep0 = 'halo1_jj/'
+	rep0 = 'halo1/'
 	#rep0 = 'halo1/'
 	#rep0 = 'halo1_jj_new/'
 	#ldir = ['NL4_zoom_wdm/'+rep0, 'NL4_zoom_cdm/'+rep0]
@@ -20,8 +20,8 @@ if __name__ == "__main__":
 	else:
 		low, up = 1750, 2250
 
-	sn0 = 25
-	sn1 = 25
+	sn0 = 23
+	sn1 = 23
 
 	if tag==0:
 		out0 = []
@@ -289,7 +289,7 @@ if __name__ == "__main__":
 		lvir0 = np.array([Lvir(lMvir0[i],ltot0[0][i]) for i in range(ltot0.shape[1])])
 		lvir1 = np.array([Lvir(lMvir1[i],ltot1[0][i]) for i in range(ltot1.shape[1])])
 
-	tcore = 10
+	tcore = 0.1
 	lt0[1:] = lt0[1:]-tcore
 	lt1[1:] = lt1[1:]-tcore
 	luc0 = lu0[3]-Ms_t0(lt0)
@@ -297,8 +297,12 @@ if __name__ == "__main__":
 
 	lz0 = lu0[0][lu0[3]>0]
 	lz1 = lu1[0][lu1[3]>0]
-	lHII0 = epsilon_ff*luc0*UM/(1e10*mmw()*100*PROTON)
-	lHII1 = epsilon_ff*luc1*UM/(1e10*mmw()*100*PROTON)
+	if sfdbk!=0:
+		lHII0 = epsilon_ff*luc0*UM/(1e10*mmw()*100*PROTON)
+		lHII1 = epsilon_ff*luc1*UM/(1e10*mmw()*100*PROTON)
+	else:
+		lHII0 = epsilon_ff_*luc0*UM/(1e10*mmw()*100*PROTON)
+		lHII1 = epsilon_ff_*luc1*UM/(1e10*mmw()*100*PROTON)
 	
 	lff0 = lHII0 + out0[1]
 	lff1 = lHII1 + out1[1]

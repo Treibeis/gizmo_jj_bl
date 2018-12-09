@@ -301,7 +301,7 @@ def luminosity_syn(sn, facB = 1.0, facn = 1.0, p_index = 2.5, rep = './', box = 
 	out0 = np.sum([output.get() for p in processes])
 	return [z, out0*4*np.pi, p_index]
 
-def luminosity_tot(sn, rep = './', box = [[1750]*3,[2250]*3], nsh = 1.0, nsh2 = 1e-4, base = 'snapshot', ext = '.hdf5', ncore = 4, X=0.76, h = 0.6774, Om = 0.315):#,  Rv = 50.0, center=[2e3]*3):
+def luminosity_tot(sn, rep = './', box = [[1750]*3,[2250]*3], nsh = 1.0, nsh2 = 1e-4, base = 'snapshot', ext = '.hdf5', ncore = 4, X=0.76, h = 0.6774, Om = 0.315, Tsh = 1):#,  Rv = 50.0, center=[2e3]*3):
 	start = time.time()
 	#H0 = h*100*UV/UL/1e3
 	#rho0 = Om*H0**2*3/8/np.pi/GRA
@@ -327,7 +327,7 @@ def luminosity_tot(sn, rep = './', box = [[1750]*3,[2250]*3], nsh = 1.0, nsh2 = 
 	#M_tot = np.array(np.sum(ad[('PartType0','Masses')].to('Msun')) + np.sum(ad[('PartType1','Masses')].to('Msun'))) + Msink
 	#delta = M_tot/M_bg
 
-	shock = np.logical_or(ad[('PartType0','Density')].to_equivalent("cm**-3", "number_density",mu=mmw(ad[('PartType0','Primordial HII')])) > nsh, ad[('PartType0','Primordial H2')]>nsh2)
+	shock = np.logical_or(ad[('PartType0','Density')].to_equivalent("cm**-3", "number_density",mu=mmw(ad[('PartType0','Primordial HII')])) > nsh, ad[('PartType0','Primordial H2')]>nsh2) * (np.array(temp(ad[('PartType0','InternalEnergy')],ad[('PartType0','Primordial HII')]))>Tsh)
 	nump = ad[('PartType0','Coordinates')][shock].shape[0]
 	ln = np.array(ad[('PartType0','Density')][shock].to_equivalent("cm**-3", "number_density",mu=mmw(ad[('PartType0','Primordial HII')][shock])))
 	lm = ad[('PartType0','Masses')][shock]
@@ -338,6 +338,7 @@ def luminosity_tot(sn, rep = './', box = [[1750]*3,[2250]*3], nsh = 1.0, nsh2 = 
 	lxHD = ad[('PartType0','Primordial HD')][shock]
 	lxHII = ad[('PartType0','Primordial HII')][shock]
 	lxe = ad[('PartType0','Primordial e-')][shock]
+	#print(len(lxe))
 	np_core = int(nump/ncore)
 	lpr = [[i*np_core, (i+1)*np_core] for i in range(ncore-1)] + [[(ncore-1)*np_core, nump]]
 	print(lpr)
@@ -345,7 +346,9 @@ def luminosity_tot(sn, rep = './', box = [[1750]*3,[2250]*3], nsh = 1.0, nsh2 = 
 	output = manager.Queue()
 	def sess(pr0, pr1):
 		Ltot = 0
+		Lff = 0
 		for i in range(pr0, pr1):
+			xh = 4*X/(1+3*X+4*X*lxHII[i])
 			n = ln[i]*xh
 			m = lm[i]
 			rho = lrho[i]
@@ -361,14 +364,17 @@ def luminosity_tot(sn, rep = './', box = [[1750]*3,[2250]*3], nsh = 1.0, nsh2 = 
 				LambdaHI(T, nH0, ne) + LambdaHII(T, nHII, ne) +\
 				LambdaH2_(T, nH2, nH0) + LambdaHD(T, nHD, nH0, n)
 			Ltot += Lam*V
-		output.put(Ltot)
+			Lff += LambdaBre(T, nHII, 0, 0, ne)*V
+		output.put([Ltot, Lff])
 	processes = [mp.Process(target=sess, args=(lpr[i][0], lpr[i][1])) for i in range(ncore)]
 	for p in processes:
 		p.start()
 	for p in processes:
 		p.join()
-	out0 = [output.get() for p in processes]
+	out00 = [output.get() for p in processes]
+	out0 = [x[0] for x in out00]
 	out = np.sum(out0)
+	Lff = np.sum([x[1] for x in out00])
 	MV = 0
 	if z<15:
 		obj = caesar.CAESAR(ds)
@@ -377,7 +383,7 @@ def luminosity_tot(sn, rep = './', box = [[1750]*3,[2250]*3], nsh = 1.0, nsh2 = 
 		if len(lh)>0:
 			MV = virial_mass(lh[0])
 	print('Time taken: {} s, MV_max: {} [Msun]'.format(time.time()-start, MV))
-	return [z, out, MV, Msink]
+	return [z, out, MV, Msink, Lff]
 			
 def luminosity_particle(sn, rep = './', box = [[1900]*3,[2000]*3], nsh = 1e-5, base = 'snapshot', ext = '.hdf5', ncore = 4, X=0.76, nline=42, Tsh = 1e4, nmax = 1.0e4):
 	xh = 4*X/(1+3*X)
@@ -405,6 +411,7 @@ def luminosity_particle(sn, rep = './', box = [[1900]*3,[2000]*3], nsh = 1e-5, b
 	lxH2 = ad[('PartType0','Primordial H2')][shock]
 	lxH0 = ad[('PartType0','Primordial HI')][shock]
 	lxHD = ad[('PartType0','Primordial HD')][shock]
+	lxHII = ad[('PartType0','Primordial HII')][shock]
 	np_core = int(nump/ncore)
 	lpr = [[i*np_core, (i+1)*np_core] for i in range(ncore-1)] + [[(ncore-1)*np_core, nump]]
 	print(lpr)
@@ -420,6 +427,7 @@ def luminosity_particle(sn, rep = './', box = [[1900]*3,[2000]*3], nsh = 1e-5, b
 		lnu_scale = np.zeros(pr1-pr0)
 		lH2 = np.zeros(nline)
 		for i in range(pr0, pr1):
+			xh = 4*X/(1+3*X+4*X*lxHII[i])
 			n = ln[i]*xh
 			m = lm[i]
 			rho = lrho[i]
