@@ -9,13 +9,13 @@ from scipy.optimize import *
 import sys
 from cosmology import *
 
-def temp_(u, Y, X = H_FRAC, gamma = 5.0/3):
+def temp_(u, Y, X = Hfrac, gamma = 5.0/3):
 	M = PROTON*4.0/(3*X+1+4*X*Y)
 	U = u.to('erg/g')
 	tem = M*U*(gamma-1)/BOL
 	return tem
 
-def temp(u, Y, X = H_FRAC, gamma = 5.0/3):
+def temp(u, Y, X = Hfrac, gamma = 5.0/3):
 	M = PROTON*4.0/(3*X+1+4*X*Y)
 	U = u*UE/UM
 	tem = M*U*(gamma-1)/BOL
@@ -26,7 +26,7 @@ def magneticf(u, rho, fac):
 	B = (fac*U*8*np.pi)**0.5
 	return B
 
-def MBE(T, n, Y, X = H_FRAC, gamma = 5.0/3):
+def MBE(T, n, Y, X = Hfrac, gamma = 5.0/3):
 	mu = 4.0/(3*X+1+4*X*Y)
 	xh = 4.0*X/(3*X+1)
 	out = 1050*(T/200)**1.5/(mu/1.22)**2.0/(xh*n/1e4)**0.5 * (gamma/(5.0/3))**2
