@@ -250,13 +250,13 @@ if __name__ == "__main__":
 	tcore = 0.1
 	lt0[1:] = lt0[1:]-tcore
 	lt1[1:] = lt1[1:]-tcore
-	luc0 = lu0[3]-Ms_t0(lt0)
-	luc1 = lu1[3]-Ms_t1(lt1)
+	luc0_H2 = lu0[3]-Ms_t0(lt0)
+	luc1_H2 = lu1[3]-Ms_t1(lt1)
 
 	lz0 = lu0[0][lu0[1]>0]
 	lz1 = lu1[0][lu1[1]>0]
-	llu0 = (lu0[1]+luc0*0.1*5e33/10)[lu0[1]>0]
-	llu1 = (lu1[1]+luc1*0.1*5e33/10)[lu1[1]>0]
+	llu0 = (lu0[1]+luc0_H2*0.1*5e33/10)[lu0[1]>0]
+	llu1 = (lu1[1]+luc1_H2*0.1*5e33/10)[lu1[1]>0]
 	lflux0 = [llu0[i]/(DZ(lz0[i])*(1+lz0[i]))**2/4/np.pi/1e3 for i in range(len(lz0))]
 	lflux1 = [llu1[i]/(DZ(lz1[i])*(1+lz1[i]))**2/4/np.pi/1e3 for i in range(len(lz1))]
 	plt.figure()
@@ -289,7 +289,7 @@ if __name__ == "__main__":
 		lvir0 = np.array([Lvir(lMvir0[i],ltot0[0][i]) for i in range(ltot0.shape[1])])
 		lvir1 = np.array([Lvir(lMvir1[i],ltot1[0][i]) for i in range(ltot1.shape[1])])
 
-	tcore = 0.1
+	tcore = 10
 	lt0[1:] = lt0[1:]-tcore
 	lt1[1:] = lt1[1:]-tcore
 	luc0 = lu0[3]-Ms_t0(lt0)
@@ -312,8 +312,8 @@ if __name__ == "__main__":
 	plt.plot(out1[0][lff1>0],lff1[lff1>0],label=r'$L_{\mathrm{ff,total}}$, '+lmodel_[0],ls='--',marker='^')
 	plt.plot(lu0[0][lu0[1]>0],lu0[1][lu0[1]>0],label=r'$L_{\mathrm{H_{2}}}^{\mathrm{D}}$, '+lmodel_[1],marker='o')
 	plt.plot(lu1[0][lu1[1]>0],lu1[1][lu1[1]>0],label=r'$L_{\mathrm{H_{2}}}^{\mathrm{D}}$, '+lmodel_[0],ls='--',marker='o')
-	plt.plot(lu0[0][lu0[3]>0],luc0[lu0[3]>0]*0.1*5e33/10,label=r'$L_{\mathrm{H_{2}}}^{\mathrm{C}}$, '+lmodel_[1],marker='.')
-	plt.plot(lu1[0][lu1[3]>0],luc1[lu1[3]>0]*0.1*5e33/10,label=r'$L_{\mathrm{H_{2}}}^{\mathrm{C}}$, '+lmodel_[0],ls='--',marker='.')# ($\epsilon=0.05$, $M_{*}=10\ M_{\odot}$)
+	plt.plot(lu0[0][lu0[3]>0],luc0_H2[lu0[3]>0]*0.1*5e33/10,label=r'$L_{\mathrm{H_{2}}}^{\mathrm{C}}$, '+lmodel_[1],marker='.')
+	plt.plot(lu1[0][lu1[3]>0],luc1_H2[lu1[3]>0]*0.1*5e33/10,label=r'$L_{\mathrm{H_{2}}}^{\mathrm{C}}$, '+lmodel_[0],ls='--',marker='.')# ($\epsilon=0.05$, $M_{*}=10\ M_{\odot}$)
 	if tag!=0:
 		plt.plot(ltot0[0][ltot0[1]>0],ltot0[1][ltot0[1]>0],label=r'$L_{\mathrm{tot}}$, '+lmodel_[1],marker='*')#,lw=1)
 		plt.plot(ltot1[0][ltot1[1]>0],ltot1[1][ltot1[1]>0],label=r'$L_{\mathrm{tot}}$, '+lmodel_[0],marker='*',ls='--')#,lw=1)
@@ -377,7 +377,7 @@ if __name__ == "__main__":
 	#lz1 = lu1[0][lu1[3]>0]
 	#lHII0 = epsilon_ff*luc0*UM/(1e10*mmw()*100*PROTON)
 	#lHII1 = epsilon_ff*luc1*UM/(1e10*mmw()*100*PROTON)
-	print('epsilon_ff: {} [erg s^-1]'.format(epsilon_ff))
+	#print('epsilon_ff: {} [erg s^-1]'.format(epsilon_ff))
 
 	plt.figure()
 	plt.plot(out0[0][out0[1]>0],out0[1][out0[1]>0],label=lmodel_[1],marker='^')

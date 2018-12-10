@@ -10,8 +10,8 @@ import scipy.stats as stats
 from cosmology import *
 from coolingf import *
 
-epsilon_ff = LambdaBre(T=2e4, nhII=93.0, nheII=0.0, nheIII=0.0, ne=93.0)
-epsilon_ff_ = LambdaBre(T=1e3, nhII=93.0*1e-4, nheII=0.0, nheIII=0.0, ne=93.0*1e-4)
+epsilon_ff = LambdaBre(T=2e4, nhII=93.0, nheII=0.0, nheIII=0.0, ne=93.0)*0.9
+epsilon_ff_ = LambdaBre(T=1e3, nhII=93.0*1e-4, nheII=0.0, nheIII=0.0, ne=93.0*1e-4)*0.9
 
 """
 def T_cosmic(z, alpha = -4, beta = 1.27, z0 = 189.6, zi = 1100, T0 = 3300):
@@ -301,7 +301,7 @@ def luminosity_syn(sn, facB = 1.0, facn = 1.0, p_index = 2.5, rep = './', box = 
 	out0 = np.sum([output.get() for p in processes])
 	return [z, out0*4*np.pi, p_index]
 
-def luminosity_tot(sn, rep = './', box = [[1750]*3,[2250]*3], nsh = 1.0, nsh2 = 1e-4, base = 'snapshot', ext = '.hdf5', ncore = 4, X=0.76, h = 0.6774, Om = 0.315, Tsh = 1):#,  Rv = 50.0, center=[2e3]*3):
+def luminosity_tot(sn, rep = './', box = [[1750]*3,[2250]*3], nsh = 1.0, nsh2 = 1e-4, base = 'snapshot', ext = '.hdf5', ncore = 4, X=0.76, h = 0.6774, Om = 0.315, Tsh = 1, nmax = 1e3):#,  Rv = 50.0, center=[2e3]*3):
 	start = time.time()
 	#H0 = h*100*UV/UL/1e3
 	#rho0 = Om*H0**2*3/8/np.pi/GRA
@@ -327,7 +327,7 @@ def luminosity_tot(sn, rep = './', box = [[1750]*3,[2250]*3], nsh = 1.0, nsh2 = 
 	#M_tot = np.array(np.sum(ad[('PartType0','Masses')].to('Msun')) + np.sum(ad[('PartType1','Masses')].to('Msun'))) + Msink
 	#delta = M_tot/M_bg
 
-	shock = np.logical_or(ad[('PartType0','Density')].to_equivalent("cm**-3", "number_density",mu=mmw(ad[('PartType0','Primordial HII')])) > nsh, ad[('PartType0','Primordial H2')]>nsh2) * (np.array(temp(ad[('PartType0','InternalEnergy')],ad[('PartType0','Primordial HII')]))>Tsh)
+	shock = np.logical_or(ad[('PartType0','Density')].to_equivalent("cm**-3", "number_density",mu=mmw(ad[('PartType0','Primordial HII')])) > nsh, ad[('PartType0','Primordial H2')]>nsh2) * (np.array(temp(ad[('PartType0','InternalEnergy')],ad[('PartType0','Primordial HII')]))>Tsh) * (np.array(ad[('PartType0','Density')].to_equivalent("cm**-3", "number_density",mu=mmw(ad[('PartType0','Primordial HII')])))<nmax)
 	nump = ad[('PartType0','Coordinates')][shock].shape[0]
 	ln = np.array(ad[('PartType0','Density')][shock].to_equivalent("cm**-3", "number_density",mu=mmw(ad[('PartType0','Primordial HII')][shock])))
 	lm = ad[('PartType0','Masses')][shock]
@@ -338,7 +338,8 @@ def luminosity_tot(sn, rep = './', box = [[1750]*3,[2250]*3], nsh = 1.0, nsh2 = 
 	lxHD = ad[('PartType0','Primordial HD')][shock]
 	lxHII = ad[('PartType0','Primordial HII')][shock]
 	lxe = ad[('PartType0','Primordial e-')][shock]
-	#print(len(lxe))
+	NP = len(lxe)
+	print(NP)
 	np_core = int(nump/ncore)
 	lpr = [[i*np_core, (i+1)*np_core] for i in range(ncore-1)] + [[(ncore-1)*np_core, nump]]
 	print(lpr)
@@ -376,14 +377,14 @@ def luminosity_tot(sn, rep = './', box = [[1750]*3,[2250]*3], nsh = 1.0, nsh2 = 
 	out = np.sum(out0)
 	Lff = np.sum([x[1] for x in out00])
 	MV = 0
-	if z<15:
+	if 0:#z<15:
 		obj = caesar.CAESAR(ds)
 		obj.member_search()
 		lh = obj.halos
 		if len(lh)>0:
 			MV = virial_mass(lh[0])
 	print('Time taken: {} s, MV_max: {} [Msun]'.format(time.time()-start, MV))
-	return [z, out, MV, Msink, Lff]
+	return [z, out, MV, Msink, Lff, NP, nmax]
 			
 def luminosity_particle(sn, rep = './', box = [[1900]*3,[2000]*3], nsh = 1e-5, base = 'snapshot', ext = '.hdf5', ncore = 4, X=0.76, nline=42, Tsh = 1e4, nmax = 1.0e4):
 	xh = 4*X/(1+3*X)
