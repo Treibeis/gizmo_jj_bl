@@ -65,7 +65,9 @@ if __name__ == "__main__":
 	plt.figure()
 
 	#plt.contourf(test['Y'],test['X'],np.log10(test['I']),np.linspace(-36,-19,100),cmap=plt.cm.gist_ncar)#norm=LogNorm()
-	plt.contourf(test['Y'],test['X'],np.log10(test['I']),np.linspace(min(-32.5,np.max(np.log10(test['I']))),max(-16.5,np.max(np.log10(test['I']))),100),cmap=plt.cm.gist_ncar)#norm=LogNorm()	
+	ctf = plt.contourf(test['Y'],test['X'],np.log10(test['I']),np.linspace(min(-32.5,np.max(np.log10(test['I']))),max(-16.5,np.max(np.log10(test['I']))),100),cmap=plt.cm.gist_ncar)#norm=LogNorm()	
+	for c in ctf.collections:
+		c.set_edgecolor('face')
 	cb = plt.colorbar()
 	cb.set_label(r'$\log(I_{\nu}\ [\mathrm{erg\ s^{-1}\ cm^{-2}\ Hz^{-1}\ sr^{-1}}])$')
 	plt.xlabel(r'$x\ [h^{-1}\mathrm{kpc}]$')
@@ -76,7 +78,9 @@ if __name__ == "__main__":
 	#plt.show()
 
 	plt.figure()
-	plt.contourf(test_['Y'],test_['X'],np.log10(test_['SZ']),np.linspace(-19.5,max(-9.5,np.max(np.log10(test_['SZ']))),100),cmap=plt.cm.gnuplot)#norm=LogNorm()
+	ctf = plt.contourf(test_['Y'],test_['X'],np.log10(test_['SZ']),np.linspace(-19.5,max(-9.5,np.max(np.log10(test_['SZ']))),100),cmap=plt.cm.gnuplot)#norm=LogNorm()
+	for c in ctf.collections:
+		c.set_edgecolor('face')
 	cb = plt.colorbar()
 	cb.set_label(r'$\log(y_{\mathrm{LoS}})$')
 	plt.xlabel(r'$x\ [h^{-1}\mathrm{kpc}]$')

@@ -3,9 +3,9 @@ d_delta = lambda z: 1.686*(1-0.01*(1+z)/20)
 h = 0.6774
 
 Mmax = 12
-Mref = 7e9
+Mref = 1e10
 NUREF = 1e11
-BETA_l = 0.0#5/3
+BETA_l = 5/3
 BETA_t = 0.0#1-5/3
 Tref = (TZ(7.22147651692)-TZ(10.2385321471))/YR
 
@@ -63,7 +63,7 @@ def Lnu_ff_SFR(nu, M, z, T = 1e3):
 def Lnu_minih(m, z, Tmini = 1e3):
 	return Nion_m(m)*rhom(1/(1+z))/(PROTON*mmw()) * Tmini**-0.5 * 2**5*np.pi*CHARGE**6/3/ELECTRON/SPEEDOFLIGHT**3 * (2*np.pi/3/BOL/ELECTRON)**0.5 
 
-def Lnu_M(L, z, Mref = Mref, Mbd = 1e10, lognu_ref = np.log10(NUREF), Tmini = 1e3, beta = BETA_l, delta=200, nu_min = 1e3):
+def Lnu_M(L, z, Mref = Mref, Mbd = 1e10, lognu_ref = np.log10(NUREF), Tmini = 1e3, beta = BETA_l, delta=200, nu_min = 1e2):
 	mup = Mup(z)
 	alpha = np.log(L(lognu_ref)/Lnu_minih(mup,z))/np.log(Mref/mup)
 	#print(alpha)
@@ -140,18 +140,19 @@ def meanL(a=5/3, b=2.5, g=0.0, m=7):
 
 if __name__ == "__main__":
 	load = 1
-	tag = 1
+	tag = 0
 	nbin = 50
 	sn_min = 15
 	sn_max = 25
 	rep0 = 'halo1_jj/'
+	boost = 2.0
 	#rep0 = 'halo1_jj_new/'
 
 	mode = int(sys.argv[1])
 	if len(sys.argv)>=3:
 		zend = float(sys.argv[2])
 	else:
-		zend = 7.5
+		zend = 6
 
 	lnu_z0 = np.array(retxt(rep0+'luminosity_z_100_CDM.txt',2,1,0))
 	lt0 = np.array([TZ(x)/YR/1e6 for x in lnu_z0[0][sn_min:sn_max+1]])
@@ -176,15 +177,15 @@ if __name__ == "__main__":
 	lnu_raw1 = np.array(lnu_raw1).T
 	lnu1 = np.array([np.trapz(lnu_raw1[i], lt1) for i in range(len(lnu_raw1))])/dt1
 
-	L_nu0 = interp1d(np.log10(lL_nu0[0]),np.array(lnu0))
-	L_nu1 = interp1d(np.log10(lL_nu1[0]),np.array(lnu1))
+	L_nu0 = interp1d(np.log10(lL_nu0[0]*boost),np.array(lnu0))
+	L_nu1 = interp1d(np.log10(lL_nu1[0]*boost),np.array(lnu1))
 
 	print(Tref/1e6, np.sum(dt1))
 
 	nubd = 1e6
 	plt.figure()
-	plt.plot(lL_nu1[0][lL_nu1[0]>nubd], lL_nu1[1][lL_nu1[0]>nubd], label=lmodel_[1])
-	plt.plot(lL_nu0[0][lL_nu0[0]>nubd], lL_nu0[1][lL_nu0[0]>nubd], '--', label=lmodel_[0])
+	plt.plot(lL_nu1[0][lL_nu1[0]>nubd]*boost, lL_nu1[1][lL_nu1[0]>nubd], label=lmodel_[1])
+	plt.plot(lL_nu0[0][lL_nu0[0]>nubd]*boost, lL_nu0[1][lL_nu0[0]>nubd], '--', label=lmodel_[0])
 	plt.legend()
 	plt.xlabel(r'$\nu\ [\mathrm{Hz}]$')
 	plt.ylabel(r'$L^{\mathrm{S}}_{\nu}\ [\mathrm{erg\ s^{-1}\ Hz^{-1}}]$')
@@ -213,7 +214,7 @@ if __name__ == "__main__":
 	else:
 		plt.savefig(rep0+'Lnu_ref.pdf')
 
-	z_eg = 7.5
+	z_eg = 6
 	Te = 2e4
 	lnu_m0 = Lnu_M(L_nu0, z_eg, 1e10)
 	lnu_m1 = Lnu_M(L_nu1, z_eg, 1e10)
@@ -233,6 +234,7 @@ if __name__ == "__main__":
 	plt.yscale('log')
 	plt.xlabel(r'$M\ [\odot]$')
 	plt.ylabel(r'$L_{\nu='+str(NUREF/1e9)+'\ \mathrm{GHz}}\ [\mathrm{erg\ s^{-1}\ Hz^{-1}}]$')
+	plt.text(1e11, 1e23, r'$z=6$')
 	plt.legend()
 	plt.tight_layout()
 	plt.savefig(rep0+'Lnu_M.pdf')
