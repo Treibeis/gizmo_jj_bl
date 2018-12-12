@@ -2,12 +2,13 @@ from radio import *
 d_delta = lambda z: 1.686*(1-0.01*(1+z)/20)
 h = 0.6774
 
-Mmax = 12
+Mmax = 12 #15
 Mref = 1e10
 NUREF = 1e11
 BETA_l = 5/3
 BETA_t = 0.0#1-5/3
 Tref = (TZ(7.22147651692)-TZ(10.2385321471))/YR
+zbd = 0# 3.5
 
 hmf000 = hmf.MassFunction()
 hmf000.update(n=0.966, sigma_8=0.829,cosmo_params={'Om0':0.315,'H0':67.74},Mmin=3,Mmax=9)
@@ -63,24 +64,35 @@ def Lnu_ff_SFR(nu, M, z, T = 1e3):
 def Lnu_minih(m, z, Tmini = 1e3):
 	return Nion_m(m)*rhom(1/(1+z))/(PROTON*mmw()) * Tmini**-0.5 * 2**5*np.pi*CHARGE**6/3/ELECTRON/SPEEDOFLIGHT**3 * (2*np.pi/3/BOL/ELECTRON)**0.5 
 
-def Lnu_M(L, z, Mref = Mref, Mbd = 1e10, lognu_ref = np.log10(NUREF), Tmini = 1e3, beta = BETA_l, delta=200, nu_min = 1e2):
+def Lnu_M(L, z, Mref = Mref, Mbd = 1e10, lognu_ref = np.log10(NUREF), Tmini = 1e3, beta = BETA_l, delta=200, nu_min = 1e2, zbd = zbd):
 	mup = Mup(z)
 	alpha = np.log(L(lognu_ref)/Lnu_minih(mup,z))/np.log(Mref/mup)
 	#print(alpha)
-	def func(m, nu):
-		if m<=mup:
-			return Lnu_minih(m,z) * np.exp(-HBAR*2*np.pi*nu*1e6/BOL/Tmini)
-		elif m<=Mbd:
+	if z>=zbd:
+		def func(m, nu):
+			if m<=mup:
+				return Lnu_minih(m,z) * np.exp(-HBAR*2*np.pi*nu*1e6/BOL/Tmini)
+			elif m<=Mbd:
+				Te = max(Tmini*Tvir(m, z)/Tvir(mup,z),2e4)
+				return L(np.log10(nu*1e6))*(m/Mref)**alpha * np.exp(-HBAR*2*np.pi*nu*1e6/BOL/Te) #* np.exp(-extinction(z, m, nu))
+			else:
+				R = (m/(rhom(1/(1+z))*delta)*3/4/np.pi)**(1/3)
+				Rref = (Mref/(rhom(1/(1+z))*delta)*3/4/np.pi)**(1/3)
+				nu_bd = nu_min * (R/Rref)**0.5
+				if nu<nu_bd:
+					return L(np.log10(nu_bd*1e6))*(Mbd/Mref)**alpha * (m/Mbd)**beta * (nu/nu_bd)**2
+				else:
+					return L(np.log10(nu*1e6))*(Mbd/Mref)**alpha * (m/Mbd)**beta #* np.exp(-HBAR*2*np.pi*nu*1e6/BOL/Tvir(m, z))
+	else:
+		def func(m, nu):
 			Te = max(Tmini*Tvir(m, z)/Tvir(mup,z),2e4)
-			return L(np.log10(nu*1e6))*(m/Mref)**alpha * np.exp(-HBAR*2*np.pi*nu*1e6/BOL/Te) #* np.exp(-extinction(z, m, nu))
-		else:
 			R = (m/(rhom(1/(1+z))*delta)*3/4/np.pi)**(1/3)
 			Rref = (Mref/(rhom(1/(1+z))*delta)*3/4/np.pi)**(1/3)
 			nu_bd = nu_min * (R/Rref)**0.5
 			if nu<nu_bd:
-				return L(np.log10(nu_bd*1e6))*(Mbd/Mref)**alpha * (m/Mbd)**beta * (nu/nu_bd)**2
+				return Lnu_ff_SFR(nu_bd*1e6, m, z) * (nu/nu_bd)**2 * np.exp(-HBAR*2*np.pi*nu*1e6/BOL/Te)
 			else:
-				return L(np.log10(nu*1e6))*(Mbd/Mref)**alpha * (m/Mbd)**beta #* np.exp(-HBAR*2*np.pi*nu*1e6/BOL/Tvir(m, z))
+				return Lnu_ff_SFR(nu*1e6, m, z) * np.exp(-HBAR*2*np.pi*nu*1e6/BOL/Te)
 	return func
 
 from scipy.interpolate import interp2d
@@ -113,11 +125,12 @@ def dndm_z(z1=0, z0=31, mode=0, nbin=100, Mmax=10, load=0, h = 0.6774):
 dndm0 = dndm_z(mode=0,Mmax=Mmax,load=1)
 dndm1 = dndm_z(mode=1,Mmax=Mmax,load=1)
 
-def Jnu_final(z1, nu, z0 = 30, L = lambda x:1e30, Mref=Mref, dndm=dndm0, zstep = 1.0, h=0.6774):
+def Jnu_final(z1, nu, z0 = 30, L = lambda x:1e30, Mref=Mref, dndm=dndm0, zstep = 0.5, h=0.6774):
 	start = time.time()
 	nzb = int(abs(z0-z1)/zstep)+1
 	unit = YR*SPEEDOFLIGHT /(UL*1e3/h)**3/4/np.pi
-	lz = np.linspace(z1,z0,nzb)
+	#lz = np.linspace(z1,z0,nzb)
+	lz = np.logspace(np.log10(z1), np.log10(z0), nzb)
 	ljnu = []
 	for z in lz:
 		mup = Mup(z)
@@ -130,8 +143,10 @@ def Jnu_final(z1, nu, z0 = 30, L = lambda x:1e30, Mref=Mref, dndm=dndm0, zstep =
 			return lnu_m(10**m,nu*(1+z)) * tau(10**m) * max(0.0,-derivative(dndm_, z, 1e-2, args=(10**m,)))
 			#return Lnu_ff_SFR(nu*(1+z), 10**m, z) * tau_ff_SFR(10**m, z) * max(0.0,-derivative(dndm_, z, 1e-2, args=(10**m,)))
 		ljnu.append(quad(integrand, np.log10(mdown), Mmax, epsrel=-4)[0])
-	jnu_z = interp1d(lz, ljnu)
-	out = quad(jnu_z, z1, z0, epsrel=-4)[0]*unit*1e23
+	#jnu_z0 = interp1d(np.log10(lz), np.log10(ljnu))
+	#jnu_z = lambda z: 10**jnu_z0(np.log10(z))
+	#out = quad(jnu_z, z1, z0, epsrel=-4)[0]*unit*1e23
+	out = np.trapz(ljnu, lz)*unit*1e23
 	print('zend = {}, nu = {} [MHz], Jnu = {} [Jy], time: {} s'.format(z1, nu, out, time.time()-start))
 	return out
 
@@ -140,7 +155,7 @@ def meanL(a=5/3, b=2.5, g=0.0, m=7):
 
 if __name__ == "__main__":
 	load = 1
-	tag = 0
+	tag = 1
 	nbin = 50
 	sn_min = 15
 	sn_max = 25
@@ -177,15 +192,15 @@ if __name__ == "__main__":
 	lnu_raw1 = np.array(lnu_raw1).T
 	lnu1 = np.array([np.trapz(lnu_raw1[i], lt1) for i in range(len(lnu_raw1))])/dt1
 
-	L_nu0 = interp1d(np.log10(lL_nu0[0]*boost),np.array(lnu0))
-	L_nu1 = interp1d(np.log10(lL_nu1[0]*boost),np.array(lnu1))
+	L_nu0 = interp1d(np.log10(lL_nu0[0]),np.array(lnu0)*boost)
+	L_nu1 = interp1d(np.log10(lL_nu1[0]),np.array(lnu1)*boost)
 
 	print(Tref/1e6, np.sum(dt1))
 
 	nubd = 1e6
 	plt.figure()
-	plt.plot(lL_nu1[0][lL_nu1[0]>nubd]*boost, lL_nu1[1][lL_nu1[0]>nubd], label=lmodel_[1])
-	plt.plot(lL_nu0[0][lL_nu0[0]>nubd]*boost, lL_nu0[1][lL_nu0[0]>nubd], '--', label=lmodel_[0])
+	plt.plot(lL_nu1[0][lL_nu1[0]>nubd], lL_nu1[1][lL_nu1[0]>nubd], label=lmodel_[1])
+	plt.plot(lL_nu0[0][lL_nu0[0]>nubd], lL_nu0[1][lL_nu0[0]>nubd], '--', label=lmodel_[0])
 	plt.legend()
 	plt.xlabel(r'$\nu\ [\mathrm{Hz}]$')
 	plt.ylabel(r'$L^{\mathrm{S}}_{\nu}\ [\mathrm{erg\ s^{-1}\ Hz^{-1}}]$')
@@ -200,8 +215,8 @@ if __name__ == "__main__":
 		plt.savefig(rep0+'Lnu_com.pdf')
 
 	plt.figure()
-	plt.plot(lL_nu1[0], lnu1, label=lmodel_[1])
-	plt.plot(lL_nu0[0], lnu0, '--', label=lmodel_[0])
+	plt.plot(lL_nu1[0], lnu1*boost, label=lmodel_[1])
+	plt.plot(lL_nu0[0], lnu0*boost, '--', label=lmodel_[0])
 	plt.legend()
 	plt.xlabel(r'$\nu\ [\mathrm{Hz}]$')
 	plt.ylabel(r'$L^{\mathrm{ref}}_{\nu}\ [\mathrm{erg\ s^{-1}\ Hz^{-1}}]$')
@@ -426,6 +441,7 @@ if __name__ == "__main__":
 	zmax = lz[[i for i in range(len(lT_)) if lT_[i]==np.max(lT_)][0]]
 	print('Tnu at 310 MHz: {}, for z = {}'.format(np.max(lT_), zmax))
 	print(np.max(Tnu(310,np.array(lJ0))))
+	print(np.max(Tnu(310,np.array(lJ1))))
 
 	lrat = np.array(lJ0)/np.array(lJ1)
 	fig = plt.figure()

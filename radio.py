@@ -43,7 +43,7 @@ def Tvir(m = 1e10, z = 10.0, delta = 200):
 
 def SFR_MF(M, z):
 	sfr0 = 3e-3*((1+z)/11)**1.5
-	return sfr0*M/1e8 * (M<=1e10) + sfr0*1e2*(M/1e10)**(5/3) * (M>1e10)*(M<=1e12) + sfr0*1e2*(1e2)**(5/3) * (M>1e12)
+	return sfr0*M/1e8 * (M<=1e10) + sfr0*1e2*(M/1e10)**(5/3) * (M>1e10)*(M<=1e12) + sfr0*1e2*(1e2)**(5/3)*(M/1e12) * (M>1e12)
 
 def SFE_MF(M, z):
 	sfe0 = 2e-2*11/(1+z)
@@ -301,7 +301,7 @@ def luminosity_syn(sn, facB = 1.0, facn = 1.0, p_index = 2.5, rep = './', box = 
 	out0 = np.sum([output.get() for p in processes])
 	return [z, out0*4*np.pi, p_index]
 
-def luminosity_tot(sn, rep = './', box = [[1750]*3,[2250]*3], nsh = 1.0, nsh2 = 1e-4, base = 'snapshot', ext = '.hdf5', ncore = 4, X=0.76, h = 0.6774, Om = 0.315, Tsh = 1, nmax = 1e3):#,  Rv = 50.0, center=[2e3]*3):
+def luminosity_tot(sn, rep = './', box = [[1750]*3,[2250]*3], nsh = 1.0, nsh2 = 1e-4, base = 'snapshot', ext = '.hdf5', ncore = 4, X=0.76, h = 0.6774, Om = 0.315, Tsh = 1, nmax = 5e2):#,  Rv = 50.0, center=[2e3]*3):
 	start = time.time()
 	#H0 = h*100*UV/UL/1e3
 	#rho0 = Om*H0**2*3/8/np.pi/GRA
@@ -360,7 +360,7 @@ def luminosity_tot(sn, rep = './', box = [[1750]*3,[2250]*3], nsh = 1.0, nsh2 = 
 			nHD = n*lxHD[i]*4.3e-5
 			ne = n*lxe[i]
 			nHII = n*lxHII[i]
-			nHeI = ln[i]*(1-xh)
+			nHeI = ln[i]*(1-xh*(1+lxHII[i]))
 			Lam = LambdaBre(T, nHII, 0, 0, ne) + LambdaIC(T, z, ne) + LambdaHeI(T, nHeI, ne) +\
 				LambdaHI(T, nH0, ne) + LambdaHII(T, nHII, ne) +\
 				LambdaH2_(T, nH2, nH0) + LambdaHD(T, nHD, nH0, n)
