@@ -362,7 +362,7 @@ def luminosity_tot(sn, rep = './', box = [[1750]*3,[2250]*3], nsh = 1.0, nsh2 = 
 			nHII = n*lxHII[i]
 			nHeI = ln[i]*(1-xh*(1+lxHII[i]))
 			Lam = LambdaBre(T, nHII, 0, 0, ne) + LambdaIC(T, z, ne) + LambdaHeI(T, nHeI, ne) +\
-				LambdaHI(T, nH0, ne) + LambdaHII(T, nHII, ne) +\
+				LambdaHI(T, nH0, ne)*(T<1e4) + LambdaHII(T, nHII, ne) +\
 				LambdaH2_(T, nH2, nH0) + LambdaHD(T, nHD, nH0, n)
 			Ltot += Lam*V
 			Lff += LambdaBre(T, nHII, 0, 0, ne)*V

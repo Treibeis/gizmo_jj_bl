@@ -2,12 +2,12 @@ from radio import *
 
 if __name__ == "__main__":
 	tag = 1
-	sca = 1
-	sfdbk = 0
+	sca = 0
+	sfdbk = 1
 
 	ncore = 6
 	nline = 42
-	rep0 = 'halo1/'
+	rep0 = 'halo1_jj/'
 	#rep0 = 'halo1/'
 	#rep0 = 'halo1_jj_new/'
 	#ldir = ['NL4_zoom_wdm/'+rep0, 'NL4_zoom_cdm/'+rep0]
@@ -71,8 +71,8 @@ if __name__ == "__main__":
 
 	dl = 2e-22
 
-	lline1 = np.array([lH21[2][-1], lH21[4][-1], lH21[6][-1]])*2e2/0.767
-	lline0 = np.array([lH20[2][-1], lH20[4][-1], lH20[6][-1]])*2e2/0.69
+	lline1 = np.array([lH21[2][-1], lH21[4][-1], lH21[6][-1]])*3e2/1.13#0.767
+	lline0 = np.array([lH20[2][-1], lH20[4][-1], lH20[6][-1]])*3e2/1.06#0.69
 	fline1 = lline1/(DZ(lu1[0][-1])*(1+lu1[0][-1]))**2/4/np.pi/1e3
 	fline0 = lline0/(DZ(lu0[0][-1])*(1+lu0[0][-1]))**2/4/np.pi/1e3
 	llambda1 = 1/H2_E21[[1,3,5]] * (1+lu1[0][-1]) + 10
@@ -88,7 +88,7 @@ if __name__ == "__main__":
 	plt.xlim(xmin, xmax)
 	plt.ylim(ymin*10, ymax)
 	plt.xlabel(r'$\lambda_{\mathrm{obs}}\ [\mathrm{\mu m}]$')
-	plt.ylabel(r'$F_{\mathrm{H_{2}}}(M=2\times 10^{12}\ M_{\odot})\ [\mathrm{W\ m^{-2}}]$')
+	plt.ylabel(r'$F_{\mathrm{H_{2}}}(M=3\times 10^{12}\ M_{\odot})\ [\mathrm{W\ m^{-2}}]$')
 	plt.yscale('log')
 	plt.text(xmin*1.1,ymax*0.5,r'$z='+str(int(lu1[0][-1]*10)/10)+'$')
 	plt.legend()
@@ -97,7 +97,7 @@ if __name__ == "__main__":
 
 	xmin,  xmax = 10, 13
 	h = 0.6774
-	z0 = 10
+	z0 = 7
 	LH2_extra = lambda m: 1e39*m/1e10
 	lm0 = np.logspace(10,13,100)
 	lN = []
@@ -281,11 +281,13 @@ if __name__ == "__main__":
 
 	if tag!=0:
 		ref_ind = 20
-		Mv_ = 7e9
-		ltot0 = np.array(retxt(rep0+'Ltot_z_'+str(bins)+'_'+lmodel[1]+'.txt',4,1,0))
-		ltot1 = np.array(retxt(rep0+'Ltot_z_'+str(bins)+'_'+lmodel[0]+'.txt',4,1,0))
-		lMvir0 = np.array([Mv_*ltot0[2][i]/ltot0[2][ref_ind] for i in range(ltot0.shape[1])])
-		lMvir1 = np.array([Mv_*ltot1[2][i]/ltot1[2][ref_ind] for i in range(ltot1.shape[1])])
+		Mv_ = 1e10 *0.048/0.315 #7e9
+		ltot0 = np.array(retxt(rep0+'Ltot_z_'+str(bins)+'_'+lmodel[1]+'.txt',5,1,0))
+		ltot1 = np.array(retxt(rep0+'Ltot_z_'+str(bins)+'_'+lmodel[0]+'.txt',5,1,0))
+		ltot0_ = np.array(retxt(rep0+'_Ltot_z_'+str(bins)+'_'+lmodel[1]+'.txt',4,1,0))
+		ltot1_ = np.array(retxt(rep0+'_Ltot_z_'+str(bins)+'_'+lmodel[0]+'.txt',4,1,0))
+		lMvir0 = np.array([Mv_*ltot0_[2][i]/ltot0_[2][ref_ind] for i in range(ltot0_.shape[1])])
+		lMvir1 = np.array([Mv_*ltot1_[2][i]/ltot1_[2][ref_ind] for i in range(ltot1_.shape[1])])
 		lvir0 = np.array([Lvir(lMvir0[i],ltot0[0][i]) for i in range(ltot0.shape[1])])
 		lvir1 = np.array([Lvir(lMvir1[i],ltot1[0][i]) for i in range(ltot1.shape[1])])
 
@@ -304,14 +306,16 @@ if __name__ == "__main__":
 		lHII0 = epsilon_ff_*luc0*UM/(1e10*mmw()*100*PROTON)
 		lHII1 = epsilon_ff_*luc1*UM/(1e10*mmw()*100*PROTON)
 	
-	lff0 = lHII0 + out0[1]
-	lff1 = lHII1 + out1[1]
+	lff0 = ltot0[4]#*0 +out0[1] + lHII0  
+	lff1 = ltot1[4]#*0 +out1[1] + lHII1 
+	llh20 = lu0[1] #ltot0[5]
+	llh21 = lu1[1] #ltot1[5]
 
 	plt.figure()
-	plt.plot(out0[0][lff0>0],lff0[lff0>0],label=r'$L_{\mathrm{ff,total}}$, '+lmodel_[1],marker='^')
-	plt.plot(out1[0][lff1>0],lff1[lff1>0],label=r'$L_{\mathrm{ff,total}}$, '+lmodel_[0],ls='--',marker='^')
-	plt.plot(lu0[0][lu0[1]>0],lu0[1][lu0[1]>0],label=r'$L_{\mathrm{H_{2}}}^{\mathrm{D}}$, '+lmodel_[1],marker='o')
-	plt.plot(lu1[0][lu1[1]>0],lu1[1][lu1[1]>0],label=r'$L_{\mathrm{H_{2}}}^{\mathrm{D}}$, '+lmodel_[0],ls='--',marker='o')
+	plt.plot(out0[0][lff0>0],lff0[lff0>0],label=r'$L_{\mathrm{ff}}$, '+lmodel_[1],marker='^')
+	plt.plot(out1[0][lff1>0],lff1[lff1>0],label=r'$L_{\mathrm{ff}}$, '+lmodel_[0],ls='--',marker='^')
+	plt.plot(lu0[0][llh20>0],llh20[llh20>0],label=r'$L_{\mathrm{H_{2}}}^{\mathrm{D}}$, '+lmodel_[1],marker='o')
+	plt.plot(lu1[0][llh21>0],llh21[llh21>0],label=r'$L_{\mathrm{H_{2}}}^{\mathrm{D}}$, '+lmodel_[0],ls='--',marker='o')
 	plt.plot(lu0[0][lu0[3]>0],luc0_H2[lu0[3]>0]*0.1*5e33/10,label=r'$L_{\mathrm{H_{2}}}^{\mathrm{C}}$, '+lmodel_[1],marker='.')
 	plt.plot(lu1[0][lu1[3]>0],luc1_H2[lu1[3]>0]*0.1*5e33/10,label=r'$L_{\mathrm{H_{2}}}^{\mathrm{C}}$, '+lmodel_[0],ls='--',marker='.')# ($\epsilon=0.05$, $M_{*}=10\ M_{\odot}$)
 	if tag!=0:
@@ -319,8 +323,8 @@ if __name__ == "__main__":
 		plt.plot(ltot1[0][ltot1[1]>0],ltot1[1][ltot1[1]>0],label=r'$L_{\mathrm{tot}}$, '+lmodel_[0],marker='*',ls='--')#,lw=1)
 		plt.plot(ltot0[0][ltot0[2]>0],lvir0[ltot0[2]>0],label=r'$L_{\mathrm{vir}}$, '+lmodel_[1],marker='x',lw=1)
 		plt.plot(ltot1[0][ltot1[2]>0],lvir1[ltot1[2]>0],label=r'$L_{\mathrm{vir}}$, '+lmodel_[0],marker='x',ls='--',lw=1)
-		plt.plot(ltot0[0][ltot0[2]>0],3.2e4*lMvir0[ltot0[2]>0]*2e33,label=r'$L_{\mathrm{Edd}}$, '+lmodel_[1],lw=3)
-		plt.plot(ltot1[0][ltot1[2]>0],3.2e4*lMvir1[ltot1[2]>0]*2e33,label=r'$L_{\mathrm{Edd}}$, '+lmodel_[0],ls='--',lw=3)
+		plt.plot(ltot0[0][ltot0_[2]>0],3.2e4*lMvir0[ltot0_[2]>0]*2e33,label=r'$L_{\mathrm{Edd}}$, '+lmodel_[1],lw=3)
+		plt.plot(ltot1[0][ltot1_[2]>0],3.2e4*lMvir1[ltot1_[2]>0]*2e33,label=r'$L_{\mathrm{Edd}}$, '+lmodel_[0],ls='--',lw=3)
 	plt.xlabel(r'$z$')
 	#plt.xlim(min(lu0[0][lu0[1]>0])-0.1,max(lu1[0][lu1[1]>0])+0.1)
 	plt.xlim(min(lu0[0][lu0[1]>0])-0.1,30)
