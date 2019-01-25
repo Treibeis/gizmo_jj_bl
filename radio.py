@@ -386,7 +386,7 @@ def luminosity_tot(sn, rep = './', box = [[1750]*3,[2250]*3], nsh = 1.0, nsh2 = 
 	print('Time taken: {} s, MV_max: {} [Msun]'.format(time.time()-start, MV))
 	return [z, out, MV, Msink, Lff, NP, nmax]
 			
-def luminosity_particle(sn, rep = './', box = [[1900]*3,[2000]*3], nsh = 1e-5, base = 'snapshot', ext = '.hdf5', ncore = 4, X=0.76, nline=42, Tsh = 1e4, nmax = 1.0e4):
+def luminosity_particle(sn, rep = './', box = [[1900]*3,[2000]*3], nsh = 1e-5, base = 'snapshot', ext = '.hdf5', ncore = 4, X=0.76, nline=42, Tsh = 1e4, nmax = 1e4):
 	xh = 4*X/(1+3*X)
 	mu0 = 4/(1+3*X)
 	ds = yt.load(rep+base+'_'+str(sn).zfill(3)+ext)

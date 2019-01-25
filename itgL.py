@@ -2,16 +2,16 @@ from radio import *
 
 if __name__ == "__main__":
 	tag = 1
-	sca = 0
+	sca = 1
 	sfdbk = 1
 
-	ncore = 6
+	ncore = 8
 	nline = 42
 	rep0 = 'halo1_jj/'
 	#rep0 = 'halo1/'
 	#rep0 = 'halo1_jj_new/'
-	#ldir = ['NL4_zoom_wdm/'+rep0, 'NL4_zoom_cdm/'+rep0]
-	ldir = ['halo1_wdm/','halo1_cdm/']
+	ldir = ['NL4_zoom_wdm/'+rep0, 'NL4_zoom_cdm/'+rep0]
+	#ldir = ['halo1_wdm/','halo1_cdm/']
 	Tsh = 1e4
 	mode = int(sys.argv[1])
 	bins = int(sys.argv[2])
@@ -182,7 +182,9 @@ if __name__ == "__main__":
 	plt.ylabel(r'$F_{\mathrm{H_{2}}}\ [\mathrm{W\ m^{-2}}]$')
 	#plt.title(r'$M_{\mathrm{vir}}=6.9\ (7.67)\times 10^{9}\ M_{\odot}$ in WDM (CDM) cosmology,'+'\n with stellar feedbacks',size=12)
 	if sca!=0:
-		plt.xlim(min(lu0[0][lu0[1]>0])-0.1,max(lu1[0][lu1[1]>0])+0.1)
+		plt.xlim(7,15)
+		#plt.xlim(min(lu0[0][lu0[1]>0])-0.1,max(lu1[0][lu1[1]>0])+0.1)
+		plt.ylim(1e-26, 2e-23)
 		plt.yscale('log')
 	else:
 		plt.xlim(min(lu0[0][lu0[1]>0])-0.1,15)
@@ -278,19 +280,19 @@ if __name__ == "__main__":
 		plt.savefig(rep0+'logFH2_z_'+str(bins)+'.pdf')
 	print('H2 flux: {} (CDM), {} (WDM) [W m^-2]'.format(max(lflux1),max(lflux0)))
 	print('H2 flux at z = {}: {} (CDM), {} (WDM) [W m^-2]'.format(lu0[0][-1],lflux1[-1],lflux0[-1]))
-
+	#"""
 	if tag!=0:
 		ref_ind = 20
 		Mv_ = 1e10 *0.048/0.315 #7e9
 		ltot0 = np.array(retxt(rep0+'Ltot_z_'+str(bins)+'_'+lmodel[1]+'.txt',5,1,0))
 		ltot1 = np.array(retxt(rep0+'Ltot_z_'+str(bins)+'_'+lmodel[0]+'.txt',5,1,0))
-		ltot0_ = np.array(retxt(rep0+'_Ltot_z_'+str(bins)+'_'+lmodel[1]+'.txt',4,1,0))
-		ltot1_ = np.array(retxt(rep0+'_Ltot_z_'+str(bins)+'_'+lmodel[0]+'.txt',4,1,0))
+		ltot0_ = ltot0#np.array(retxt(rep0+'_Ltot_z_'+str(bins)+'_'+lmodel[1]+'.txt',4,1,0))
+		ltot1_ = ltot1#np.array(retxt(rep0+'_Ltot_z_'+str(bins)+'_'+lmodel[0]+'.txt',4,1,0))
 		lMvir0 = np.array([Mv_*ltot0_[2][i]/ltot0_[2][ref_ind] for i in range(ltot0_.shape[1])])
 		lMvir1 = np.array([Mv_*ltot1_[2][i]/ltot1_[2][ref_ind] for i in range(ltot1_.shape[1])])
 		lvir0 = np.array([Lvir(lMvir0[i],ltot0[0][i]) for i in range(ltot0.shape[1])])
 		lvir1 = np.array([Lvir(lMvir1[i],ltot1[0][i]) for i in range(ltot1.shape[1])])
-
+	#"""
 	tcore = 10
 	lt0[1:] = lt0[1:]-tcore
 	lt1[1:] = lt1[1:]-tcore
@@ -306,8 +308,8 @@ if __name__ == "__main__":
 		lHII0 = epsilon_ff_*luc0*UM/(1e10*mmw()*100*PROTON)
 		lHII1 = epsilon_ff_*luc1*UM/(1e10*mmw()*100*PROTON)
 	
-	lff0 = ltot0[4]#*0 +out0[1] + lHII0  
-	lff1 = ltot1[4]#*0 +out1[1] + lHII1 
+	lff0 = ltot0[4]*0 +out0[1] + lHII0  
+	lff1 = ltot1[4]*0 +out1[1] + lHII1 
 	llh20 = lu0[1] #ltot0[5]
 	llh21 = lu1[1] #ltot1[5]
 
@@ -319,7 +321,7 @@ if __name__ == "__main__":
 	plt.plot(lu0[0][lu0[3]>0],luc0_H2[lu0[3]>0]*0.1*5e33/10,label=r'$L_{\mathrm{H_{2}}}^{\mathrm{C}}$, '+lmodel_[1],marker='.')
 	plt.plot(lu1[0][lu1[3]>0],luc1_H2[lu1[3]>0]*0.1*5e33/10,label=r'$L_{\mathrm{H_{2}}}^{\mathrm{C}}$, '+lmodel_[0],ls='--',marker='.')# ($\epsilon=0.05$, $M_{*}=10\ M_{\odot}$)
 	if tag!=0:
-		plt.plot(ltot0[0][ltot0[1]>0],ltot0[1][ltot0[1]>0],label=r'$L_{\mathrm{tot}}$, '+lmodel_[1],marker='*')#,lw=1)
+		plt.plot(ltot0[0][(ltot0[1]>0)*(lu0[1]>0)],ltot0[1][(ltot0[1]>0)*(lu0[1]>0)],label=r'$L_{\mathrm{tot}}$, '+lmodel_[1],marker='*')#,lw=1)
 		plt.plot(ltot1[0][ltot1[1]>0],ltot1[1][ltot1[1]>0],label=r'$L_{\mathrm{tot}}$, '+lmodel_[0],marker='*',ls='--')#,lw=1)
 		plt.plot(ltot0[0][ltot0[2]>0],lvir0[ltot0[2]>0],label=r'$L_{\mathrm{vir}}$, '+lmodel_[1],marker='x',lw=1)
 		plt.plot(ltot1[0][ltot1[2]>0],lvir1[ltot1[2]>0],label=r'$L_{\mathrm{vir}}$, '+lmodel_[0],marker='x',ls='--',lw=1)
@@ -328,6 +330,7 @@ if __name__ == "__main__":
 	plt.xlabel(r'$z$')
 	#plt.xlim(min(lu0[0][lu0[1]>0])-0.1,max(lu1[0][lu1[1]>0])+0.1)
 	plt.xlim(min(lu0[0][lu0[1]>0])-0.1,30)
+	plt.ylim(1e32,1e48)
 	plt.ylabel(r'$L\ [\mathrm{erg\ s^{-1}}]$')
 	if sca!=0:
 		plt.yscale('log')
