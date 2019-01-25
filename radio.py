@@ -301,7 +301,7 @@ def luminosity_syn(sn, facB = 1.0, facn = 1.0, p_index = 2.5, rep = './', box = 
 	out0 = np.sum([output.get() for p in processes])
 	return [z, out0*4*np.pi, p_index]
 
-def luminosity_tot(sn, rep = './', box = [[1750]*3,[2250]*3], nsh = 1.0, nsh2 = 1e-4, base = 'snapshot', ext = '.hdf5', ncore = 4, X=0.76, h = 0.6774, Om = 0.315, Tsh = 1, nmax = 5e2):#,  Rv = 50.0, center=[2e3]*3):
+def luminosity_tot(sn, rep = './', box = [[1750]*3,[2250]*3], nsh = 1.0, nsh2 = 1e-5, base = 'snapshot', ext = '.hdf5', ncore = 4, X=0.76, h = 0.6774, Om = 0.315, Tsh = 1, nmax = 5e2, zmin = 15):#,  Rv = 50.0, center=[2e3]*3):
 	start = time.time()
 	#H0 = h*100*UV/UL/1e3
 	#rho0 = Om*H0**2*3/8/np.pi/GRA
@@ -377,7 +377,7 @@ def luminosity_tot(sn, rep = './', box = [[1750]*3,[2250]*3], nsh = 1.0, nsh2 = 
 	out = np.sum(out0)
 	Lff = np.sum([x[1] for x in out00])
 	MV = 0
-	if 0:#z<15:
+	if z<zmin:
 		obj = caesar.CAESAR(ds)
 		obj.member_search()
 		lh = obj.halos

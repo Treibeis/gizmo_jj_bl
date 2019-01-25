@@ -1,8 +1,10 @@
 from radio import *
 
 if __name__ == "__main__":
-	ncore = 6
+	ncore = 8
+	#rep0 = 'halo1_jj_new/'
 	rep0 = 'halo1_jj/'
+	#rep0 = 'halo3_jj/'
 	#rep0 = 'halo1/'
 	ldir = ['NL4_zoom_wdm/'+rep0, 'NL4_zoom_cdm/'+rep0]
 	#ldir = ['halo1_wdm/','halo1_cdm/']
@@ -15,14 +17,15 @@ if __name__ == "__main__":
 
 	sn0 = 25
 	sn1 = 25
+	zmin = 15
 
 	dlu0, dlu1 = [], []
-	for sn in range(0,26):
+	for sn in range(0,28):
 		if sn<=sn0:
-			lu0_temp = luminosity_tot(sn,ldir[0],[[low]*3,[up]*3],ncore=ncore,nsh=nsh)
+			lu0_temp = luminosity_tot(sn,ldir[0],[[low]*3,[up]*3],ncore=ncore,nsh=nsh,zmin=zmin)
 			dlu0.append(lu0_temp)
 		if sn<=sn1:
-			lu1_temp = luminosity_tot(sn,ldir[1],[[low]*3,[up]*3],ncore=ncore,nsh=nsh)		
+			lu1_temp = luminosity_tot(sn,ldir[1],[[low]*3,[up]*3],ncore=ncore,nsh=nsh,zmin=zmin)	
 			dlu1.append(lu1_temp)
 	lu0 = np.array(dlu0).T
 	lu1 = np.array(dlu1).T
