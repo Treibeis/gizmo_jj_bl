@@ -17,7 +17,7 @@ lm = np.log10(hmf000.m/h)
 ln = np.log10(hmf000.ngtm)#*h**3)
 nm = interp1d(lm,ln)
 Nps_ref = (10**nm(-2*np.log10((1+6)/10)+6)-10**nm(np.log10(2.5*((1+6)/10)**-1.5)+7))/(UL*1e3/h)**3
-Nion = 3e-21*2.6e-13/(SPEEDOFLIGHT*1e-39*Nps_ref)
+Nion = 2e64 #3e-24*2.6e-13/(SPEEDOFLIGHT*1e-39*Nps_ref)
 
 def extinction(z, m, nu, delta = 200):
 	T = Tvir(m, z)
@@ -31,7 +31,7 @@ def tau_mini(z):
 
 Mup = lambda z: 2.5e7*((1+z)/10)**-1.5
 Mdown = lambda z: 1e6*((1+z)/10)**-2
-Mmini = lambda z: (Mup(z)+Mdown(z))/2
+Mmini = lambda z: Mdown(z)#(Mup(z)+Mdown(z))/2
 
 def Nion_m(m):
 	return Nion*m/Mmini(6)
@@ -155,7 +155,7 @@ def meanL(a=5/3, b=2.5, g=0.0, m=7):
 
 if __name__ == "__main__":
 	load = 1
-	tag = 1
+	tag = 0
 	nbin = 50
 	sn_min = 15
 	sn_max = 25
@@ -367,8 +367,8 @@ if __name__ == "__main__":
 	ax1.plot(lnu, Tnu(lnu,JHII_z(6)),'-.',label=r'Minihalo',lw=1)
 	ax1.plot(lnu[lnu>0], Tnu(lnu[lnu>0],10**J21_z(1420/lnu[lnu>0]-1)), ls=':',color='r', label=r'21 cm',lw=1)
 	lTnu_IGM = [Tnu(x,Jnu_bg(x)) for x in lnu]
-	ax1.plot(lnu, lTnu_IGM, ls='-.',lw=2,color='g',label=r'ionized diffuse IGM')
-	ax1.plot(lnu,Tnu_SKA(lnu),'k--',label=r'SKA',lw=2)
+	ax1.plot(lnu, lTnu_IGM, ls='-.',lw=3,color='g',label=r'ionized diffuse IGM')
+	ax1.plot(lnu,Tnu_SKA(lnu),'k--',label=r'SKA',lw=3)
 	ax1.fill_between(lnu,1e3*Tnu_sky_ff(lnu,-1),1e3*Tnu_sky_ff(lnu,1),facecolor='gray',label=r'$T_{\mathrm{ff}}^{\mathrm{G}}$ (ARCADE 2)',alpha=0.5)
 	yup = np.max([160.0,np.max(Tnu(lnu,np.array(lJnu1))),np.max(Tnu(lnu,np.array(lJnu0)))])*1.05
 	ax1.plot([1420/7,1420/7],[1e-4,yup],lw=0.5,color='k')
@@ -394,8 +394,8 @@ if __name__ == "__main__":
 	ax1.plot(lnu_/1e3, Tnu(lnu_,np.array(lJnu1_)), label=r'Structure formation, '+lmodel_[1],lw=1)
 	ax1.plot(lnu_/1e3, Tnu(lnu_,np.array(lJnu0_)), label=r'Structure formation, '+lmodel_[0],ls='--',lw=1)
 	ax1.plot(lnu_/1e3, Tnu(lnu_,JHII_z(6)),'-.',label=r'Minihalo',lw=1)
-	ax1.plot(lnu_/1e3, [Tnu(x,Jnu_bg(x)) for x in lnu_], ls='-.',lw=2,color='g',label=r'ionized diffuse IGM')
-	ax1.plot(lnu_/1e3,Tnu_SKA(lnu_),'k--',label=r'SKA', lw=2)
+	ax1.plot(lnu_/1e3, [Tnu(x,Jnu_bg(x)) for x in lnu_], ls='-.',lw=3,color='g',label=r'ionized diffuse IGM')
+	ax1.plot(lnu_/1e3,Tnu_SKA(lnu_),'k--',label=r'SKA', lw=3)
 	ax1.fill_between(lnu_/1e3,1e3*Tnu_sky_ff(lnu_,-1),1e3*Tnu_sky_ff(lnu_,1),facecolor='gray',label=r'$T_{\mathrm{ff}}^{\mathrm{G}}$ (ARCADE 2)',alpha=0.5)
 	ax1.set_xlim(1.0,90)
 	yup = np.max([0.31,np.max(Tnu(lnu_,np.array(lJnu1_))),np.max(Tnu(lnu_,np.array(lJnu0_)))])*1.05
