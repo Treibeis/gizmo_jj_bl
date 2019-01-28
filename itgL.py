@@ -312,10 +312,14 @@ if __name__ == "__main__":
 	lff1 = ltot1[4]*0 +out1[1] + lHII1 
 	llh20 = lu0[1] #ltot0[5]
 	llh21 = lu1[1] #ltot1[5]
+	ltot0[1] += lHII0
+	ltot1[1] += lHII1
 
 	plt.figure()
 	plt.plot(out0[0][lff0>0],lff0[lff0>0],label=r'$L_{\mathrm{ff}}$, '+lmodel_[1],marker='^')
 	plt.plot(out1[0][lff1>0],lff1[lff1>0],label=r'$L_{\mathrm{ff}}$, '+lmodel_[0],ls='--',marker='^')
+	#plt.plot(ltot0[0], ltot0[4]+lHII0, 'k')
+	#plt.plot(ltot1[0], ltot1[4]+lHII1, 'k--')
 	plt.plot(lu0[0][llh20>0],llh20[llh20>0],label=r'$L_{\mathrm{H_{2}}}^{\mathrm{D}}$, '+lmodel_[1],marker='o')
 	plt.plot(lu1[0][llh21>0],llh21[llh21>0],label=r'$L_{\mathrm{H_{2}}}^{\mathrm{D}}$, '+lmodel_[0],ls='--',marker='o')
 	plt.plot(lu0[0][lu0[3]>0],luc0_H2[lu0[3]>0]*0.1*5e33/10,label=r'$L_{\mathrm{H_{2}}}^{\mathrm{C}}$, '+lmodel_[1],marker='.')
