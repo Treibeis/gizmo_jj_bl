@@ -155,7 +155,7 @@ def meanL(a=5/3, b=2.5, g=0.0, m=7):
 
 if __name__ == "__main__":
 	load = 1
-	tag = 0
+	tag = 1
 	nbin = 50
 	sn_min = 15
 	sn_max = 25
@@ -377,7 +377,7 @@ if __name__ == "__main__":
 	ax1.set_ylim(1e-4,yup)
 	ax1.set_xlabel(r'$\nu_{\mathrm{obs}}\ [\mathrm{MHz}]$')
 	ax1.set_ylabel(r'$\langle\delta T\rangle\ [\mathrm{mK}]$')
-	ax1.legend()
+	ax1.legend(handlelength=4.5)
 	ax1.set_xscale('log')
 	if mode==0:
 		ax1.set_yscale('log')
@@ -402,7 +402,7 @@ if __name__ == "__main__":
 	ax1.set_ylim(1e-6,yup)
 	ax1.set_xlabel(r'$\nu_{\mathrm{obs}}\ [\mathrm{GHz}]$')
 	ax1.set_ylabel(r'$\langle\delta T\rangle\ [\mathrm{mK}]$')
-	ax1.legend()
+	ax1.legend(handlelength=4.5)
 	ax1.set_xscale('log')
 	if mode==0:
 		ax1.set_yscale('log')
@@ -426,7 +426,7 @@ if __name__ == "__main__":
 	ax1.plot([6,6],[1e-9,yup],lw=0.5,color='k')
 	ax1.fill_between([0,6],[1e-9,1e-9],[yup,yup],facecolor='gray',alpha=0.2)
 	ax1.set_xlim(0,20)
-	ax1.set_ylim(1e-3,yup)
+	ax1.set_ylim(1e-4,yup)
 	ax1.set_xlabel(r'$z_{\mathrm{end}}$')
 	ax1.set_ylabel(r'$\langle\delta T\rangle(>z_{\mathrm{end}}) [\mathrm{mK}]$')
 	ax1.legend()
@@ -447,7 +447,7 @@ if __name__ == "__main__":
 	fig = plt.figure()
 	ax1 = fig.add_subplot(111)
 	ax1.plot(lz, lrat, label=r'$\nu_{\mathrm{obs}}=310\ \mathrm{MHz}$, '+lmodel_[1],lw=1)
-	yup = np.max([np.max(lrat), np.max(lrat)])*1.05
+	yup = 2e3#np.max([np.max(lrat), np.max(lrat)])*1.05
 	ax1.plot([6,6],[1e-9,yup],lw=0.5,color='k')
 	ax1.fill_between([0,6],[1e-9,1e-9],[yup,yup],facecolor='gray',alpha=0.2)
 	ax1.set_xlim(0,20)

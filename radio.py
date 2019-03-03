@@ -9,6 +9,9 @@ from matplotlib.colors import LogNorm
 import scipy.stats as stats
 from cosmology import *
 from coolingf import *
+import matplotlib
+matplotlib.rcParams['mathtext.fontset'] = 'stix'
+matplotlib.rcParams['font.family'] = 'STIXGeneral'
 
 epsilon_ff = LambdaBre(T=2e4, nhII=93.0, nheII=0.0, nheIII=0.0, ne=93.0)*0.9
 epsilon_ff_ = LambdaBre(T=1e3, nhII=93.0*1e-4, nheII=0.0, nheIII=0.0, ne=93.0*1e-4)*0.9
@@ -386,7 +389,7 @@ def luminosity_tot(sn, rep = './', box = [[1750]*3,[2250]*3], nsh = 1.0, nsh2 = 
 	print('Time taken: {} s, MV_max: {} [Msun]'.format(time.time()-start, MV))
 	return [z, out, MV, Msink, Lff, NP, nmax]
 			
-def luminosity_particle(sn, rep = './', box = [[1900]*3,[2000]*3], nsh = 1e-5, base = 'snapshot', ext = '.hdf5', ncore = 4, X=0.76, nline=42, Tsh = 1e4, nmax = 1e4):
+def luminosity_particle(sn, rep = './', box = [[1900]*3,[2000]*3], nsh = 1e-5, base = 'snapshot', ext = '.hdf5', ncore = 4, X=0.76, nline=42, Tsh = 1e4, nmax = 5e2):
 	xh = 4*X/(1+3*X)
 	mu0 = 4/(1+3*X)
 	ds = yt.load(rep+base+'_'+str(sn).zfill(3)+ext)
@@ -468,7 +471,7 @@ def luminosity_particle(sn, rep = './', box = [[1900]*3,[2000]*3], nsh = 1e-5, b
 	d['line'] = lH2
 	return d
 
-def grid(mesh, sn, rep = './', box = [[1750]*3,[2250]*3], Tsh = 1e3, mode = 0, base = 'snapshot', ext = '.hdf5', Tmin = 10.0, ncore = 1, X = 0.76, nsh = 1e8):#, h = 0.6774):
+def grid(mesh, sn, rep = './', box = [[1750]*3,[2250]*3], Tsh = 1e3, mode = 0, base = 'snapshot', ext = '.hdf5', Tmin = 10.0, ncore = 1, X = 0.76, nsh = 5e2):#, h = 0.6774):
 	start = time.time()
 	ds = yt.load(rep+base+'_'+str(sn).zfill(3)+ext)
 	#z = ds['Redshift']

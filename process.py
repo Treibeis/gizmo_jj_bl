@@ -46,7 +46,7 @@ def cosmicT(z = 99, zd = 200.0, zre = 1100):
 
 lls = ['-', '--', '-.', ':']
 lls = lls*2
-lrep = ['N128L4_cdm/', 'N128L4_wdm/', 'N128L4_cdm_dvx30/']
+lrep = ['N128L4_cdm/', 'N128L4_wdm/']#, 'N128L4_cdm_dvx30/']
 lmodel = ['CDM', 'WDM_3_kev', 'DVX30']
 lmodel_ = ['CDM', 'WDM_3_keV', 'DVX30']
 
@@ -178,7 +178,7 @@ hmf1.update(n=0.966, sigma_8=0.829,cosmo_params={'Om0':0.315,'H0':67.74},Mmin=4,
 #HMF = 'mVector_PLANCK-SMT .txt'
 #HMF0 = 'mVector_PLANCK-SMT0 .txt'
 #Redf=retxt('output_25_4.txt',1,0,0)[0]
-fac0 = 0.208671*0.3153754*0.1948407
+fac0 = 1.0#0.208671*0.3153754*0.1948407
 
 
 
@@ -221,34 +221,35 @@ def halom(sn, rep ='./', indm = 0, anaf1 = hmf1, anaf0 = hmf0, mlow = 1e6, fac =
 	#plt.show()
 	return lm
 
-def plothm(l = lrep, sn = 28, nbin = 15, rm = [8, 10], anaf = hmf0, boxs = 4.0):
+def plothm(l = lrep, sn = 28, nbin = 15, rm = [8, 10], anaf = hmf0, boxs = 4.0, base = 'snapshot', ext = '.hdf5', h=0.6774):
+	ds = yt.load(lrep[0]+base+'_'+str(sn).zfill(3)+ext)
 	z = ds['Redshift']#1/Redf[sn]-1
-	lhm = [halom(sn, l[x], x) for x in range(3)]
+	lhm = [halom(sn, l[x], x) for x in range(len(l))]
 	lhis = []
 	lbs = []
-	for i in range(3):
+	for i in range(len(l)):
 		his, ed = np.histogram(np.log10(lhm[i]), nbin, rm)
 		lbs.append((ed[1:]+ed[:-1])/2+0.03*i)
 		if i==0: 
 			bs = (ed[1]-ed[0])
 		lhis.append(his)
 	anaf.update(z=z)
-	lm = np.log10(anaf.m)
+	lm = np.log10(anaf.m/h)
 	ln = np.log10(anaf.dndlog10m)
 	mf_ana = interp1d(lm, ln)
 	#mf_file = retxt(anaf, 11, 12, 0)
 	#mf_ana = interp1d(np.log10(mf_file[0]),mf_file[7])
 	plt.figure(figsize=(12,5))
 	plt.subplot(121)
-	[plt.errorbar(lbs[i], lhis[i]/boxs**3/bs, yerr=lhis[i]**0.5/boxs**3/bs, ls=lls[i], label=lmodel[i]) for i in range(3)]
-	plt.plot(lbs[0], mf_ana(lbs[0]), ls=lls[3], label='Sheth-Mo-Tormen')
+	[plt.errorbar(lbs[i], lhis[i]/boxs**3/bs, yerr=lhis[i]**0.5/boxs**3/bs, ls=lls[i], label=lmodel[i]) for i in range(len(l))]
+	plt.plot(lbs[0], 10**mf_ana(lbs[0]), ls=lls[3], label='Sheth-Mo-Tormen')
 	plt.legend()
 	plt.yscale('log')
 	plt.xlabel(r'$\log(M_{V}\ [h^{-1}M_{\odot}])$')
 	plt.ylabel(r'$\frac{dn}{d\log(M)}\ [h^{3}\mathrm{Mpc^{-3}}]$')
 	plt.subplot(122)
-	plt.errorbar(lbs[0], mf_ana(lbs[0])-lhis[0]/boxs**3/bs, yerr=lhis[0]**0.5/boxs**3/bs, ls=lls[0], label='Analytical$-$CDM')
-	[plt.errorbar(lbs[i],(lhis[i]-lhis[0])/boxs**3/bs, yerr=(lhis[i]+lhis[0])**0.5/boxs**3/bs, ls =lls[i], label=lmodel[i]+r'$-$'+lmodel[0]) for i in range(1,3)]
+	plt.errorbar(lbs[0], 10**mf_ana(lbs[0])-lhis[0]/boxs**3/bs, yerr=lhis[0]**0.5/boxs**3/bs, ls=lls[0], label='Analytical$-$CDM')
+	[plt.errorbar(lbs[i],(lhis[i]-lhis[0])/boxs**3/bs, yerr=(lhis[i]+lhis[0])**0.5/boxs**3/bs, ls =lls[i], label=lmodel[i]+r'$-$'+lmodel[0]) for i in range(1,len(l))]
 	plt.plot(lbs[0],np.zeros(lbs[0].shape),color='gray',lw=2.0,alpha=0.5)
 	plt.legend()
 	plt.xlabel(r'$\log(M_{V}\ [h^{-1}M_{\odot}])$')
@@ -256,7 +257,7 @@ def plothm(l = lrep, sn = 28, nbin = 15, rm = [8, 10], anaf = hmf0, boxs = 4.0):
 	plt.tight_layout()
 	#plt.suptitle(r'Halo mass function at $z=$'+str(int(z*100)/100),size=14)
 	plt.savefig('dhmass_'+str(sn)+'.pdf')
-	plt.show()
+	#plt.show()
 		
 rec_default = [[1,1,1]]*1+[np.array([0.3783187, 0.3497985, 0.399293243])*4000]
 
@@ -487,19 +488,19 @@ def sinks(ntask = 4, rep = 'sink/', base = 'sink', ext = '.txt', mode=0):
 	return out
 
 if __name__ == "__main__":
-	sn = int(sys.argv[1])
-	if len(sys.argv)<3:
-		model = 1
-	else:
-		model = int(sys.argv[2])
+	#sn = int(sys.argv[1])
+	#if len(sys.argv)<3:
+	#	model = 1
+	#else:
+	#	model = int(sys.argv[2])
 	#data = loaddata(sn,sn)
 	#ds = cosweb(sn, model, data, mode = -1, norm = 1e6, nb = 500)
 	#ds = cosweb(sn, model, data, ax = [1,2], norm = 1e6, mode = -1, nb = 500)
 	#ds = cosweb(sn, model, data, ax = [2,0], norm = 1e6, mode = -1, nb = 500)
-	ds = phase(sn,indm=model)
+	#ds = phase(sn,indm=model)
 	fac0 = 1.0 #0.3783187*0.3497985*0.399293243
 	#lm = halom(sn, indm = model, fac = fac0)
-	#plothm(sn=19)
+	plothm(sn=19)
 
 	"""
 	from radio import *

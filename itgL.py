@@ -2,7 +2,7 @@ from radio import *
 
 if __name__ == "__main__":
 	tag = 1
-	sca = 1
+	sca = 0
 	sfdbk = 1
 
 	ncore = 8
