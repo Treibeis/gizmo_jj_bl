@@ -2,7 +2,7 @@ from radio import *
 d_delta = lambda z: 1.686*(1-0.01*(1+z)/20)
 h = 0.6774
 
-Mmax = 12 #15
+Mmax = 8#12 #15
 Mref = 1e10
 NUREF = 1e11
 BETA_l = 5/3
@@ -155,7 +155,7 @@ def meanL(a=5/3, b=2.5, g=0.0, m=7):
 
 if __name__ == "__main__":
 	load = 1
-	tag = 1
+	tag = 0
 	nbin = 50
 	sn_min = 15
 	sn_max = 25
@@ -331,24 +331,26 @@ if __name__ == "__main__":
 
 	if tag==0:
 		lz = np.linspace(19.9,1/(1-5e-2)-1,nbin)
-		#"""
+		"""
 		lJ0 = [Jnu_final(z,L=L_nu0,nu=310,dndm=dndm0) for z in lz]
 		lJ1 = [Jnu_final(z,L=L_nu1,nu=310,dndm=dndm1) for z in lz]
 		totxt(rep0+'Jnuz.txt',[lz,lJ0,lJ1],0,0,0)
-		#"""
-		lnu = 10**np.linspace(np.log10(50),3,nbin)
-		lJnu0 = [Jnu_final(zend,L=L_nu0,nu=x,dndm=dndm0) for x in lnu]
-		lJnu1 = [Jnu_final(zend,L=L_nu1,nu=x,dndm=dndm1) for x in lnu]
-		totxt(rep0+'Jnu.txt',[lnu,lJnu0,lJnu1],0,0,0)
+		"""
+		#lnu = 10**np.linspace(np.log10(50),3,nbin)
+		#lJnu0 = [Jnu_final(zend,L=L_nu0,nu=x,dndm=dndm0) for x in lnu]
+		#lJnu1 = [Jnu_final(zend,L=L_nu1,nu=x,dndm=dndm1) for x in lnu]
+		#totxt(rep0+'Jnu.txt',[lnu,lJnu0,lJnu1],0,0,0)
 		T0 = Tnu(310,Jnu_final(zend,L=L_nu0,nu=310,dndm=dndm0))
 		T1 = Tnu(310,Jnu_final(zend,L=L_nu1,nu=310,dndm=dndm1))
-		totxt(rep0+'T310.txt',[[T0, T1]],0,0,0)
-
+		T0_ = Tnu(310,Jnu_final(5e-2,L=L_nu0,nu=310,dndm=dndm0))
+		T1_ = Tnu(310,Jnu_final(5e-2,L=L_nu1,nu=310,dndm=dndm1))
+		totxt(rep0+'T310.txt',[[T0, T1], [T0_, T1_]],0,0,0)
+		"""
 		lnu_ = 10**np.linspace(3,np.log10(10e4),nbin)
 		lJnu0_ = [Jnu_final(zend,L=L_nu0,nu=x,dndm=dndm0) for x in lnu_]
 		lJnu1_ = [Jnu_final(zend,L=L_nu1,nu=x,dndm=dndm1) for x in lnu_]
 		totxt(rep0+'Jnu_.txt',[lnu_,lJnu0_,lJnu1_],0,0,0)
-
+		"""
 	else:
 		dataz = np.array(retxt(rep0+'Jnuz.txt',3,0,0))
 		datanu = np.array(retxt(rep0+'Jnu.txt',3,0,0))
