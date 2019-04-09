@@ -2,7 +2,7 @@ from radio import *
 
 if __name__ == "__main__":
 	tag = 1
-	sca = 0
+	sca = 1
 	sfdbk = 1
 
 	ncore = 8
@@ -20,8 +20,8 @@ if __name__ == "__main__":
 	else:
 		low, up = 1750, 2250
 
-	sn0 = 23
-	sn1 = 23
+	sn0 = 20#3
+	sn1 = 20#3
 
 	if tag==0:
 		out0 = []
@@ -79,7 +79,7 @@ if __name__ == "__main__":
 	llambda0 = 1/H2_E21[[1,3,5]] * (1+lu0[0][-1])
 	plt.figure()
 	xmin, xmax = 50, 160
-	ymin, ymax = 1e-24, 1e-20
+	ymin, ymax = 1e-24, 2e-20
 	lmark = ['o', '^', '*']
 	lll = ['0-0 S(1)', '0-0 S(3)', '0-0 S(5)']
 	a = [plt.plot([x,x],[ymin, y], label=s+', '+lmodel_[1], marker=m) for x, y, s, m in zip(llambda0, fline0, lll, lmark)]
@@ -88,7 +88,7 @@ if __name__ == "__main__":
 	plt.xlim(xmin, xmax)
 	plt.ylim(ymin*10, ymax)
 	plt.xlabel(r'$\lambda_{\mathrm{obs}}\ [\mathrm{\mu m}]$')
-	plt.ylabel(r'$F_{\mathrm{H_{2}}}(M=3\times 10^{12}\ M_{\odot})\ [\mathrm{W\ m^{-2}}]$')
+	plt.ylabel(r'$F_{\mathrm{H_{2}}}(M=3\times 10^{12}\ \mathrm{M}_{\odot})\ [\mathrm{W\ m^{-2}}]$')
 	plt.yscale('log')
 	plt.text(xmin*1.1,ymax*0.5,r'$z='+str(int(lu1[0][-1]*10)/10)+'$')
 	plt.legend()
@@ -120,13 +120,13 @@ if __name__ == "__main__":
 		lN.append((nf-ni)*Vshell)
 	print('Volume: {} Mpc^3'.format(Vshell))
 	fig, ax1 = plt.subplots()
-	ax1.fill_between(lm0, LH2_extra(lm0)/(DZ(zi)*(1+zi))**2/4/np.pi/1e3, 10*LH2_extra(lm0)/(DZ(zi)*(1+zi))**2/4/np.pi/1e3, alpha=0.5, facecolor='gray', label=r'$\hat{L}_{\mathrm{H_{2}}}\sim 10^{39-40}\ \mathrm{erg\ s^{-1}}\ (M/10^{10}\ M_{\odot})$')
+	ax1.fill_between(lm0, LH2_extra(lm0)/(DZ(zi)*(1+zi))**2/4/np.pi/1e3, 10*LH2_extra(lm0)/(DZ(zi)*(1+zi))**2/4/np.pi/1e3, alpha=0.5, facecolor='gray', label=r'$\hat{L}_{\mathrm{H_{2}}}\sim 10^{39-40}\ \mathrm{erg\ s^{-1}}\ (M/10^{10}\ \mathrm{M}_{\odot})$')
 	plt.plot([10**xmin, 10**xmax], [dl, dl], 'k-.', label=r'$5\sigma$ in 10 hrs'+'\ncooled 10-m telescope')
 	ax1.plot(lm0, 100*LH2_extra(lm0)/(DZ(zi)*(1+zi))**2/4/np.pi/1e3, label='Optimal lens & shock boosting')
 	ax2 = ax1.twinx()
 	#ax2.plot(lm0, lN[1], label=lmodel_[1])
 	ax2.plot(lm0, lN[0], 'b--')
-	ax1.set_xlabel(r'$M\ [M_{\odot}]$')
+	ax1.set_xlabel(r'$M\ [\mathrm{M}_{\odot}]$')
 	ax1.set_ylabel(r'$F_{\mathrm{H_{2}}}\ [\mathrm{W\ m^{-2}}]$')
 	ax2.set_ylabel(r'$N_{\mathrm{h}}(m>M)$')
 	ax1.set_yscale('log')
@@ -180,7 +180,7 @@ if __name__ == "__main__":
 	#plt.plot(lz1,lfs71,label='0-0 S(13), '+lmodel[0],ls='--',marker='+')
 	plt.xlabel(r'$z$')
 	plt.ylabel(r'$F_{\mathrm{H_{2}}}\ [\mathrm{W\ m^{-2}}]$')
-	#plt.title(r'$M_{\mathrm{vir}}=6.9\ (7.67)\times 10^{9}\ M_{\odot}$ in WDM (CDM) cosmology,'+'\n with stellar feedbacks',size=12)
+	#plt.title(r'$M_{\mathrm{vir}}=6.9\ (7.67)\times 10^{9}\ \mathrm{M}_{\odot}$ in WDM (CDM) cosmology,'+'\n with stellar feedbacks',size=12)
 	if sca!=0:
 		plt.xlim(7,15)
 		#plt.xlim(min(lu0[0][lu0[1]>0])-0.1,max(lu1[0][lu1[1]>0])+0.1)
@@ -265,7 +265,7 @@ if __name__ == "__main__":
 	plt.plot(lz0,lflux0,label='diffuse+core, '+lmodel_[1],marker='*')
 	plt.plot(lz1,lflux1,label='diffuse+core, '+lmodel_[0],ls='--',marker='*')
 	#plt.plot(lu0[0][lu0[3]>0],lu0[3][lu0[3]>0]*0.05*5e33/10,label='core, '+lmodel[1])
-	#plt.plot(lu1[0][lu1[3]>0],lu1[3][lu1[3]>0]*0.05*5e33/10,label='core ($\epsilon=0.05$, $M_{*}=10\ M_{\odot}$), '+lmodel[0],ls='--')
+	#plt.plot(lu1[0][lu1[3]>0],lu1[3][lu1[3]>0]*0.05*5e33/10,label='core ($\epsilon=0.05$, $M_{*}=10\ \mathrm{M}_{\odot}$), '+lmodel[0],ls='--')
 	plt.xlabel(r'$z$')
 	plt.xlim(min(lz0)-0.1,max(lz1)+0.1)
 	plt.ylabel(r'$F_{\mathrm{H_{2}}}\ [\mathrm{W\ m^{-2}}]$')
@@ -323,7 +323,7 @@ if __name__ == "__main__":
 	plt.plot(lu0[0][llh20>0],llh20[llh20>0],label=r'$L_{\mathrm{H_{2}}}^{\mathrm{D}}$, '+lmodel_[1],marker='o')
 	plt.plot(lu1[0][llh21>0],llh21[llh21>0],label=r'$L_{\mathrm{H_{2}}}^{\mathrm{D}}$, '+lmodel_[0],ls='--',marker='o')
 	plt.plot(lu0[0][lu0[3]>0],luc0_H2[lu0[3]>0]*0.1*5e33/10,label=r'$L_{\mathrm{H_{2}}}^{\mathrm{C}}$, '+lmodel_[1],marker='.')
-	plt.plot(lu1[0][lu1[3]>0],luc1_H2[lu1[3]>0]*0.1*5e33/10,label=r'$L_{\mathrm{H_{2}}}^{\mathrm{C}}$, '+lmodel_[0],ls='--',marker='.')# ($\epsilon=0.05$, $M_{*}=10\ M_{\odot}$)
+	plt.plot(lu1[0][lu1[3]>0],luc1_H2[lu1[3]>0]*0.1*5e33/10,label=r'$L_{\mathrm{H_{2}}}^{\mathrm{C}}$, '+lmodel_[0],ls='--',marker='.')# ($\epsilon=0.05$, $M_{*}=10\ \mathrm{M}_{\odot}$)
 	if tag!=0:
 		plt.plot(ltot0[0][(ltot0[1]>0)*(lu0[1]>0)],ltot0[1][(ltot0[1]>0)*(lu0[1]>0)],label=r'$L_{\mathrm{tot}}$, '+lmodel_[1],marker='*')#,lw=1)
 		plt.plot(ltot1[0][ltot1[1]>0],ltot1[1][ltot1[1]>0],label=r'$L_{\mathrm{tot}}$, '+lmodel_[0],marker='*',ls='--')#,lw=1)
@@ -366,7 +366,7 @@ if __name__ == "__main__":
 	plt.plot(lu0[0][lu0[3]>0],lu0[3][lu0[3]>0],label=lmodel_[1],marker='o')
 	plt.plot(lu1[0][lu1[3]>0],lu1[3][lu1[3]>0],label=lmodel_[0],ls='--',marker='o')
 	plt.xlabel(r'$z$')
-	plt.ylabel(r'$M_{\mathrm{sink}}\ [M_{\odot}]$')
+	plt.ylabel(r'$M_{\mathrm{sink}}\ [\mathrm{M}_{\odot}]$')
 	if sca!=0:
 		plt.yscale('log')
 		#plt.xscale('log')
@@ -409,7 +409,7 @@ if __name__ == "__main__":
 	if sca!=0:
 		plt.yscale('log')
 		#plt.xscale('log')
-	plt.legend()
+	plt.legend(loc=3)
 	plt.tight_layout()
 	if sca==0:
 		plt.savefig(rep0+'L_z_'+str(bins)+'.pdf')

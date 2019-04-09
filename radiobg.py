@@ -2,7 +2,7 @@ from radio import *
 d_delta = lambda z: 1.686*(1-0.01*(1+z)/20)
 h = 0.6774
 
-Mmax = 8#12 #15
+Mmax = 12 #15
 Mref = 1e10
 NUREF = 1e11
 BETA_l = 5/3
@@ -155,7 +155,7 @@ def meanL(a=5/3, b=2.5, g=0.0, m=7):
 
 if __name__ == "__main__":
 	load = 1
-	tag = 0
+	tag = 1
 	nbin = 50
 	sn_min = 15
 	sn_max = 25
@@ -191,6 +191,9 @@ if __name__ == "__main__":
 		lnu_raw1.append(retxt(rep0+'Lnu_wdm_'+str(i)+'.txt',2,0,0)[1])
 	lnu_raw1 = np.array(lnu_raw1).T
 	lnu1 = np.array([np.trapz(lnu_raw1[i], lt1) for i in range(len(lnu_raw1))])/dt1
+	
+	#lnu0 = 0.5 * (lnu0+lnu1)
+	#lnu1 =lnu0
 
 	L_nu0 = interp1d(np.log10(lL_nu0[0]),np.array(lnu0)*boost)
 	L_nu1 = interp1d(np.log10(lL_nu1[0]),np.array(lnu1)*boost)
@@ -247,7 +250,7 @@ if __name__ == "__main__":
 	plt.scatter([Mref],[lnu_m0(Mref, NUREF/1e6)],marker='o',label=r'$L_{\nu}^{\mathrm{ref}}$, '+lmodel_[0],alpha=0.5)
 	plt.xscale('log')
 	plt.yscale('log')
-	plt.xlabel(r'$M\ [\odot]$')
+	plt.xlabel(r'$M\ [\mathrm{M}_{\odot}]$')
 	plt.ylabel(r'$L_{\nu='+str(NUREF/1e9)+'\ \mathrm{GHz}}\ [\mathrm{erg\ s^{-1}\ Hz^{-1}}]$')
 	plt.text(1e11, 1e23, r'$z=6$')
 	plt.legend()
@@ -331,26 +334,27 @@ if __name__ == "__main__":
 
 	if tag==0:
 		lz = np.linspace(19.9,1/(1-5e-2)-1,nbin)
-		"""
+		#"""
 		lJ0 = [Jnu_final(z,L=L_nu0,nu=310,dndm=dndm0) for z in lz]
 		lJ1 = [Jnu_final(z,L=L_nu1,nu=310,dndm=dndm1) for z in lz]
 		totxt(rep0+'Jnuz.txt',[lz,lJ0,lJ1],0,0,0)
-		"""
-		#lnu = 10**np.linspace(np.log10(50),3,nbin)
-		#lJnu0 = [Jnu_final(zend,L=L_nu0,nu=x,dndm=dndm0) for x in lnu]
-		#lJnu1 = [Jnu_final(zend,L=L_nu1,nu=x,dndm=dndm1) for x in lnu]
-		#totxt(rep0+'Jnu.txt',[lnu,lJnu0,lJnu1],0,0,0)
+		#"""
 		T0 = Tnu(310,Jnu_final(zend,L=L_nu0,nu=310,dndm=dndm0))
 		T1 = Tnu(310,Jnu_final(zend,L=L_nu1,nu=310,dndm=dndm1))
 		T0_ = Tnu(310,Jnu_final(5e-2,L=L_nu0,nu=310,dndm=dndm0))
 		T1_ = Tnu(310,Jnu_final(5e-2,L=L_nu1,nu=310,dndm=dndm1))
 		totxt(rep0+'T310.txt',[[T0, T1], [T0_, T1_]],0,0,0)
-		"""
+		#"""
+		lnu = 10**np.linspace(np.log10(50),3,nbin)
+		lJnu0 = [Jnu_final(zend,L=L_nu0,nu=x,dndm=dndm0) for x in lnu]
+		lJnu1 = [Jnu_final(zend,L=L_nu1,nu=x,dndm=dndm1) for x in lnu]
+		totxt(rep0+'Jnu.txt',[lnu,lJnu0,lJnu1],0,0,0)
+		
 		lnu_ = 10**np.linspace(3,np.log10(10e4),nbin)
 		lJnu0_ = [Jnu_final(zend,L=L_nu0,nu=x,dndm=dndm0) for x in lnu_]
 		lJnu1_ = [Jnu_final(zend,L=L_nu1,nu=x,dndm=dndm1) for x in lnu_]
 		totxt(rep0+'Jnu_.txt',[lnu_,lJnu0_,lJnu1_],0,0,0)
-		"""
+		#"""
 	else:
 		dataz = np.array(retxt(rep0+'Jnuz.txt',3,0,0))
 		datanu = np.array(retxt(rep0+'Jnu.txt',3,0,0))
@@ -361,7 +365,7 @@ if __name__ == "__main__":
 		lnu, lJnu0, lJnu1 = datanu[0], datanu[1], datanu[2]
 		lnu_, lJnu0_, lJnu1_ = datanu_[0], datanu_[1], datanu_[2]
 		
-
+		
 	fig = plt.figure()
 	ax1 = fig.add_subplot(111)
 	ax1.plot(lnu, Tnu(lnu,np.array(lJnu1)), label=r'Structure formation, '+lmodel_[1],lw=1)
@@ -473,7 +477,7 @@ if __name__ == "__main__":
 	ax1.plot(lz, lJ1, label=r'$>z$, $\nu_{\mathrm{obs}}=310\ \mathrm{MHz}$, '+lmodel[1],lw=1)
 	ax1.plot(lz, lJ0, '--',label=r'$>z$, $\nu_{\mathrm{obs}}=310\ \mathrm{MHz}$, '+lmodel[0],lw=1)
 	#ax1.plot(lz, lJ2, '-.', label=r'$>z$, $\nu_{\mathrm{obs}}=10^{4}\ \mathrm{MHz}$')
-	ax1.plot(lz, JHII_z(lz),'-.',label=r'$>z$, $\mathrm{H_{II}}$ regions ($M_{*}\sim 100\ M_{\odot})$',lw=1)
+	ax1.plot(lz, JHII_z(lz),'-.',label=r'$>z$, $\mathrm{H_{II}}$ regions ($M_{*}\sim 100\ \mathrm{M}_{\odot})$',lw=1)
 	#ax1.plot(lz[lz>6], 10**J21_z(lz[lz>6]),lw=2,color='r',ls=':')
 	ax1.plot(lz, lJz1, label=r'overall ($z='+str(zend)+'$), '+lmodel[1],lw=2,color='k')
 	ax1.plot(lz, lJz0, label=r'overall ($z='+str(zend)+'$), '+lmodel[0],lw=2,color='k',ls='--')
@@ -491,7 +495,7 @@ if __name__ == "__main__":
 	#ax1.plot([12.593,12.593],[1e-9,22.5],'--',lw=0.5,color='k')
 	ax1.fill_between([0,6],[1e-9,1e-9],[yup,yup],facecolor='gray',alpha=0.2)
 	#plt.plot([0.42,0.42],[1e-9,20],ls='--',lw=0.5,color='k')
-	#ax2.set_title(r'$\langle L_{\nu}\rangle \sim 1-4\times 10^{24}\ \mathrm{erg\ s^{-1}\ Hz^{-1}}$, $10^{9}\lesssim M_{\mathrm{halo}}\ [h^{-1}M_{\odot}]\lesssim 10^{10}$,'+'\n'+r' $\nu_{\mathrm{obs}}\sim 1- 10^{7}\ [\mathrm{MHz}/(1+z)]$',size=12)#$10/(1+z)\lesssim \nu_{\mathrm{obs}}\ [\mathrm{MHz}]\lesssim 10^{7}/(1+z)$')
+	#ax2.set_title(r'$\langle L_{\nu}\rangle \sim 1-4\times 10^{24}\ \mathrm{erg\ s^{-1}\ Hz^{-1}}$, $10^{9}\lesssim M_{\mathrm{halo}}\ [h^{-1}\mathrm{M}_{\odot}]\lesssim 10^{10}$,'+'\n'+r' $\nu_{\mathrm{obs}}\sim 1- 10^{7}\ [\mathrm{MHz}/(1+z)]$',size=12)#$10/(1+z)\lesssim \nu_{\mathrm{obs}}\ [\mathrm{MHz}]\lesssim 10^{7}/(1+z)$')
 	ax1.set_xlim(0,20)
 	ax2.set_xlim(ax1.get_xlim())
 	ax1.set_ylim(1e-9,yup)
@@ -645,7 +649,7 @@ if __name__ == "__main__":
 	plt.plot(lz_base,ln_M_z0,'--',label=lmodel[0])
 	plt.xlabel(r'$z$')
 	#plt.xlabel(r'$t\ [\mathrm{Gyr}]$')
-	plt.ylabel(r'$n(10^{9}-10^{10}\ M_{\odot})\ [h^{3}\mathrm{Mpc^{-3}}]$')
+	plt.ylabel(r'$n(10^{9}-10^{10}\ \mathrm{M}_{\odot})\ [h^{3}\mathrm{Mpc^{-3}}]$')
 	plt.xlim(0,20)
 	plt.ylim(0,3.5)
 	plt.legend()
@@ -656,7 +660,7 @@ if __name__ == "__main__":
 	plt.plot(lt_base,ln_M_z0,'--',label=lmodel[0])
 	#plt.xlabel(r'$z$')
 	plt.xlabel(r'$t\ [\mathrm{Gyr}]$')
-	plt.ylabel(r'$n(10^{9}-10^{10}\ M_{\odot})\ [h^{3}\mathrm{Mpc^{-3}}]$')
+	plt.ylabel(r'$n(10^{9}-10^{10}\ \mathrm{M}_{\odot})\ [h^{3}\mathrm{Mpc^{-3}}]$')
 	#plt.xlim(0,20)
 	plt.ylim(0,3.5)
 	plt.legend()
