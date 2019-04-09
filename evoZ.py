@@ -2,7 +2,7 @@ from metalicity import *
 
 if __name__ == "__main__":
 	tag = 1
-	sca = 1
+	sca = 0
 	#nline = 42
 	#ncore = 6
 	rep0 = 'halo1_jj/'
@@ -40,7 +40,7 @@ if __name__ == "__main__":
 	plt.plot(out0[0][out0[1]>0], out0[1][out0[1]>0], label='Total, '+lmodel_[1],lw=2)#,marker='^')
 	plt.plot(out1[0][out1[1]>0], out1[1][out1[1]>0], label='Total, '+lmodel_[0],ls='--',lw=2)#,marker='^')
 	plt.xlabel(r'$z$')
-	plt.ylabel(r'$\langle Z\rangle\ [Z_{\odot}]$')
+	plt.ylabel(r'$\langle Z\rangle\ [\mathrm{Z}_{\odot}]$')
 	plt.legend()
 	if sca==0:
 		plt.yscale('log')
@@ -58,7 +58,7 @@ if __name__ == "__main__":
 	plt.plot(out0[0][out0[4]>0], out0[4][out0[4]>0], label='Total, '+lmodel_[1])#,marker='o')
 	plt.plot(out1[0][out1[4]>0], out1[4][out1[4]>0], label='Total, '+lmodel_[0],ls='--')#,marker='o')
 	plt.xlabel(r'$z$')
-	plt.ylabel(r'$\mathcal{F}_{V}(Z> 10^{-4}Z_{\odot})$')
+	plt.ylabel(r'$\mathcal{F}_{V}(Z> 10^{-4}\mathrm{Z}_{\odot})$')
 	plt.legend()
 	if sca==0:
 		plt.yscale('log')

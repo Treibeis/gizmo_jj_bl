@@ -39,12 +39,12 @@ if __name__ == "__main__":
 	plt.plot(1/refIII[0][refIII[3]>0]-1, refIII[3][refIII[3]>0],label='PopIII, Jaacks et al. (2018a)',lw=0.5)
 	plt.plot(1/refII[0][refII[3]>0]-1, refII[3][refII[3]>0],label='PopII, Jaacks et al. (2018a)',ls='--',lw=0.5)
 	#plt.plot(lz1[d1_III[2]>0],(d1_III[2]+d1_II[2])[d1_III[2]>0],label=lmodel_[0],ls='--')
-	plt.fill_between([16, 19],[up1, up1],[down1, down1],label='EDGES',facecolor='gray', alpha=0.5)
+	plt.fill_between([16+1, 19+1],[up1, up1],[down1, down1],label='EDGES',facecolor='gray', alpha=0.5)
 	plt.text(8,2e-6,r'$V_{Z,c}\simeq 11\ \mathrm{Mpc^{3}}$')
 	plt.ylim(down1, up1)
 	plt.xlim(6, 27)
 	plt.xlabel(r'$z$')
-	plt.ylabel(r'$\mathrm{SFRD}\ [M_{\odot}\ \mathrm{yr^{-1}\ Mpc^{-3}}]$')
+	plt.ylabel(r'$\mathrm{SFRD}\ [\mathrm{M}_{\odot}\ \mathrm{yr^{-1}\ Mpc^{-3}}]$')
 	if sca>0:
 		plt.yscale('log')
 	plt.legend()
@@ -91,7 +91,7 @@ if __name__ == "__main__":
 	plt.fill_between([16, 19],[up2, up2],[down2, down2],label='EDGES',facecolor='gray', alpha=0.5)
 	plt.text(6.5,1e1,r'$V_{Z,c}\simeq 11\ \mathrm{Mpc^{3}}$')
 	plt.xlabel(r'$z$')
-	plt.ylabel(r'$\rho_{\star}\ [M_{\odot}\ \mathrm{Mpc^{-3}}]$')
+	plt.ylabel(r'$\rho_{\star}\ [\mathrm{M}_{\odot}\ \mathrm{Mpc^{-3}}]$')
 	plt.ylim(down2, up2)
 	plt.xlim(6, 27)
 	if sca>0:
